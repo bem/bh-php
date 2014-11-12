@@ -1,0 +1,34 @@
+{
+    "name": "zxqfox/php-bem-bh",
+    "version": "0.0.1",
+    "description": "Template engine. BEMJSON -> HTML processor. PHP port of https://github.com/bem/bh",
+    "keywords": [
+        "bem",
+        "bh",
+        "bemjson"
+    ],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Alexej Yaroshevich",
+            "email": "alex@qfox.ru"
+        }
+    ],
+    "support": {
+        "issues": "https://github.com/zxqfox/php-bem-bh/issues"
+    },
+    "require": {
+        "php": ">=5.4.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "4.3.*",
+        "phpunit/php-invoker": "dev-master"
+    },
+    "minimum-stability": "dev",
+    "autoload": {
+        "psr-4": { "BEM\\": "src/" }
+    },
+    "scripts": {
+        "test": "phpunit"
+    }
+}
