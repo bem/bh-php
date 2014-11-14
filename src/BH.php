@@ -195,8 +195,11 @@ class BH {
             return $this;
         }
 
-        $matcher['__id'] = '__func' . ($this->_lastMatchId++);
-        $this->_matchers[] = ([$expr, $matcher]);
+        $this->_matchers[] = [
+            'expr' => $expr,
+            'fn'   => $matcher,
+            '__id' => '__func' . ($this->_lastMatchId++)
+        ];
 
         // cleanup cached matcher to rebuild it on next render
         $this->_fastMatcher = null;
@@ -214,10 +217,10 @@ class BH {
         $allMatchers = $this->_matchers;
         $declarations = [];
         for ($i = sizeof($allMatchers) - 1; $i >= 0; $i--) {
-            $matcherInfo = $allMatchers[i];
-            $expr = $matcherInfo[0];
+            $matcherInfo = $allMatchers[$i];
+            $expr = $matcherInfo['expr'];
             $vars[] = '$_m' . $i . ' = $ms[' . $i . '][1]';
-            $decl = [ 'fn' => $matcherInfo[1], $index => $i ];
+            $decl = ['fn' => $matcherInfo['fn'], '__id' => $matcherInfo['__id'], 'index' => $i];
             // @todo fixup hardcoded leveling
             // @todo refactor this
             if (strpos($expr, '__') !== -1) { // ~expr.indexOf('__')) {
@@ -228,11 +231,13 @@ class BH {
                     $decl['blockMod'] = $blockExprBits[1];
                     $decl['blockModVal'] = @$blockExprBits[2] ?: true;
                 }
-                $exprBits = explode('_', $exprBits[1]);
-                $decl['elem'] = $exprBits[0];
-                if (sizeof($exprBits) > 1) {
-                    $decl['elemMod'] = $exprBits[1];
-                    $decl['elemModVal'] = @$exprBits[2] ?: true;
+                if (!empty($exprBits[1]) && strpos($exprBits, '_') !== false) {
+                    $exprBits = explode('_', $exprBits[1]);
+                    $decl['elem'] = $exprBits[0];
+                    if (sizeof($exprBits) > 1) {
+                        $decl['elemMod'] = $exprBits[1];
+                        $decl['elemModVal'] = @$exprBits[2] ?: true;
+                    }
                 }
             } else {
                 $exprBits = explode('_', $expr);
@@ -245,42 +250,42 @@ class BH {
             $declarations[] = $decl;
         }
 
-        $declByBlock = groupBy($declarations, 'block');
-        $res[] = join(';\n', $vars) . ';';
+        $declByBlock = static::groupBy($declarations, 'block');
+        $res[] = join(";\n", $vars) . ';';
         $res[] = 'function applyMatchers($ctx, $json) {';
 
-        $res[] = ('switch ($json["block"]) {');
+        $res[] = ('switch ($json["block"]) { /*block*/');
         foreach ($declByBlock as $blockName => $blockData) {
-            $res[] = ('case "' . strEscape($blockName) . '":');
-            $declsByElem = groupBy($blockData, 'elem');
+            $res[] = ('case "' . static::strEscape($blockName) . '":');
+            $declsByElem = static::groupBy($blockData, 'elem');
 
-            $res[] = ('switch ($json["elem"]) {');
+            $res[] = ('switch ($json["elem"]) { /*elem*/');
             foreach ($declsByElem as $elemName => $decls) {
                 if ($elemName === '__no_value__') {
                     $res[] = ('case null:');
                 } else {
-                    $res[] = ('case "' . strEscape($elemName) . '":');
+                    $res[] = ('case "' . static::strEscape($elemName) . '":');
                 }
                 for ($j = 0, $l = sizeof($decls); $j < $l; $j++) {
                     $decl = $decls[$j];
-                    $fn = $decl['fn'];
+                    $__id = $decl['__id'];
                     $conds = [];
-                    $conds[] = ('!json.' . $fn['__id']);
-                    if ($decl['elemMod']) {
+                    $conds[] = ('empty($json["' . $__id . '"])');
+                    if (isset($decl['elemMod'])) {
                         $conds[] = (
-                            'json["mods"] && json["mods"]["' . strEscape($decl['elemMod']) . '"] === ' .
-                                ($decl['elemModVal'] === true || '"' . strEscape($decl['elemModVal']) . '"'));
+                            'isset($json["mods"]) && $json["mods"]["' . static::strEscape($decl['elemMod']) . '"] === ' .
+                                ($decl['elemModVal'] === true || '"' . static::strEscape($decl['elemModVal']) . '"'));
                     }
-                    if ($decl['blockMod']) {
+                    if (isset($decl['blockMod'])) {
                         $conds[] = (
-                            '$json["blockMods"]["' . strEscape($decl["blockMod"]) . '"] === ' .
-                                ($decl['blockModVal'] === true || '"' . strEscape($decl['blockModVal']) . '"'));
+                            '$json["blockMods"]["' . static::strEscape($decl["blockMod"]) . '"] === ' .
+                                ($decl['blockModVal'] === true || '"' . static::strEscape($decl['blockModVal']) . '"'));
                     }
                     $res[] = ('if (' . join(' && ', $conds) . ') {');
-                    $res[] = ('json.' . $fn['__id'] . ' = true;');
-                    $res[] = ('subRes = _m' . $decl['index'] . '(ctx, json);');
-                    $res[] = ('if (subRes !== undefined) { return (subRes || "") }');
-                    $res[] = ('if (json._stop) return;');
+                    $res[] = ('$json["' . $__id . '"] = true;');
+                    $res[] = ('$subRes = $_m' . $decl['index'] . '($ctx, $json);');
+                    $res[] = ('if ($subRes !== null) { return ($subRes ?: "") }');
+                    $res[] = ('if ($json["_stop"]) return;');
                     $res[] = ('}');
                 }
                 $res[] = ('return;');
@@ -292,7 +297,7 @@ class BH {
         $res[] = ('}');
         $res[] = ('};');
         $res[] = ('return $applyMatchers;');
-        return join('\n', $res);
+        return join("\n", $res);
     }
 
     /**
@@ -302,7 +307,7 @@ class BH {
      * @param boolean [$ignoreContent]
      * @return array
      */
-    function processBemJson ($bemJson, $blockName, $ignoreContent) {
+    function processBemJson ($bemJson, $blockName = null, $ignoreContent = null) {
         if (empty($bemJson)) {
             return;
         }
@@ -317,11 +322,13 @@ class BH {
             'arr' => $resultArr,
             'index' => 0,
             'blockName' => $blockName,
-            'blockMods' => !$bemJson['elem'] ? $bemJson['mods'] : []
+            'blockMods' => !empty($bemJson['elem']) ? $bemJson['mods'] : []
         ]];
 
         if (empty($this->_fastMatcher)) {
-            $fn = create_function('ms', $this->buildMatcher());
+            $_fn = $this->buildMatcher();
+            //echo($_fn);die;
+            $fn = create_function('ms', $_fn);
             $this->_fastMatcher = $fn($this->_matchers);
         }
         $compiledMatcher = $this->_fastMatcher;
@@ -454,7 +461,7 @@ class BH {
         }
 
         if (is_scalar($json)) {
-            return $this['_optEscapeContent'] ? xmlEscape($json) : $json;
+            return $this['_optEscapeContent'] ? $this->xmlEscape($json) : $json;
         }
 
         if (isList($json)) {
@@ -492,7 +499,7 @@ class BH {
                 $base = $json['block'] . (!empty($json['elem']) ? '__' . $json['elem'] : '');
 
                 if ($json['block']) {
-                    $cls = toBemCssClasses($json, $base);
+                    $cls = static::toBemCssClasses($json, $base);
                     if (isset($json['js'])) {
                         $jsParams = [];
                         $jsParams[$base] = $json['js'] === true ? [] : $json['js'];
@@ -513,7 +520,7 @@ class BH {
                             continue;
                         }
 
-                        $cls .= toBemCssClasses($mix, $mixBase, $base);
+                        $cls .= static::toBemCssClasses($mix, $mixBase, $base);
                         if ($mix['js']) {
                             $jsParams = $jsParams ?: [];
                             $jsParams[$mixBase] = $mix['js'] === true ? [] : $mix['js'];
@@ -526,7 +533,7 @@ class BH {
                     $cls = $cls . ' i-bem';
                     $jsData = !$hasMixJsParams && $json['js'] === true ?
                         '{&quot;' . $base . '&quot;:{}}' :
-                        attrEscape(json_encode($jsParams, JSON_UNESCAPED_UNICODE));
+                        $this->attrEscape(json_encode($jsParams, JSON_UNESCAPED_UNICODE));
                     $attrs .= ' ' . ($json['jsAttr'] ?: $this->_optJsAttrName) . '="' .
                         ($this->_optJsAttrIsJs ? 'return ' . $jsData : $jsData) . '"';
                 }
@@ -537,7 +544,7 @@ class BH {
             }
 
             $tag = $json['tag'] ?: 'div';
-            $res = '<' . $tag . ($cls ? ' class="' . attrEscape($cls) . '"' : '') . ($attrs ? $attrs : '');
+            $res = '<' . $tag . ($cls ? ' class="' . $this->attrEscape($cls) . '"' : '') . ($attrs ? $attrs : '');
 
             if (isset(static::$selfCloseHtmlTags[$tag])) {
                 $res .= '/>';
@@ -574,4 +581,57 @@ class BH {
         // }
     }
 
+    // todo: add encoding here
+    public static function xmlEscape($s) {
+        return htmlspecialchars($s, ENT_NOQUOTES);
+    }
+
+    public static function attrEscape($s) {
+        return htmlspecialchars($s, ENT_QUOTES);
+    }
+
+    public static function strEscape($s) {
+        return str_replace(array('\\', '"'), array('\\\\', '\\"'), $s);
+    }
+
+    public static function toBemCssClasses($json, $base, $parentBase) {
+        $res = '';
+
+        if ($parentBase !== $base) {
+            if ($parentBase) {
+                $res .= ' ';
+            }
+            $res .= $base;
+        }
+
+        $mods = isset($json['mods']) ? $json['mods'] : (isset($json['elem']) ? $json['elemMods'] : false);
+        if ($mods) {
+            foreach ($json['mods'] as $mod) {
+                if ($mod) {
+                    $res .= ' ' . $base . '_' . $i . ($mod === true ? '' : '_' . $mod);
+                }
+            }
+        }
+
+        return $res;
+    }
+
+    /**
+     * Group up selectors by some key
+     * @param array data
+     * @param string key
+     * @return array
+     */
+    public static function groupBy ($data, $key) {
+        $res = [];
+        for ($i = 0, $l = sizeof($data); $i < $l; $i++) {
+            $item = $data[$i];
+            $value = empty($item[$key]) ? '__no_value__' : $item[$key];
+            if (empty($res[$value])) {
+                $res[$value] = [];
+            }
+            $res[$value][] = $item;
+        }
+        return $res;
+    }
 };
