@@ -13,10 +13,7 @@ class mods extends PHPUnit_Framework_TestCase {
 
     function test_it_should_return_empty_mods () {
         $this->bh->match('button', function ($ctx) {
-            $this->assertEquals(
-                'object',
-                typeof($ctx->mods())
-            );
+            $this->assertTrue(is_object($ctx->mods())); // is_a BEM\Mods
         });
         $this->bh->apply(['block' => 'button']);
     }
@@ -25,7 +22,7 @@ class mods extends PHPUnit_Framework_TestCase {
         $this->bh->match('button', function ($ctx) {
             $this->assertEquals(
                 'button',
-                $ctx->mods()['type']
+                $ctx->mods()->type
             );
         });
         $this->bh->apply(['block' => 'button', 'mods' => ['type' => 'button']]);
@@ -35,7 +32,7 @@ class mods extends PHPUnit_Framework_TestCase {
         $this->bh->match('button', function ($ctx) {
             $this->assertEquals(
                 true,
-                $ctx->mods()['disabled']
+                $ctx->mods()->disabled
             );
         });
         $this->bh->apply(['block' => 'button', 'mods' => ['disabled' => true]]);

@@ -6,6 +6,7 @@ namespace BEM;
  * BemJson node context class
  */
 class Context {
+
     /**
      * Shared genId for DOM nodes
      * @var integer
@@ -14,6 +15,9 @@ class Context {
 
     protected $_expandoId = null;
     public $ctx = null;
+
+    public $bh;
+    public $mix;
 
     /**
      * Context constructor
@@ -49,7 +53,7 @@ class Context {
      */
     function extend ($target) {
         if (!$target || !is_array($target)) { // probably wrong
-            $target = [];
+            $target = new \stdClass();
         }
 
         // array_merge?
@@ -60,7 +64,7 @@ class Context {
                 continue;
             }
             foreach ($obj as $k => $v) {
-                $target[$k] = $v;
+                $target->$k = $v;
             }
         }
 
@@ -79,7 +83,8 @@ class Context {
      */
     function position () {
         $node = $this->node;
-        return $node['index'] === 'content' ? 1 : $node['position'];
+        return $node->index === 'content' ? 1 :
+            isset($node->position) ? $node->position : null;
     }
 
     /**
@@ -95,7 +100,8 @@ class Context {
      */
     function isFirst () {
         $node = $this->node;
-        return $node['index'] === 'content' || $node['position'] === 1;
+        return $node->index === 'content'
+            || isset($node->position) && $node->position === 1;
     }
 
     /**
@@ -111,7 +117,8 @@ class Context {
      */
     function isLast () {
         $node = $this->node;
-        return $node['index'] === 'content' || $node['position'] === $node['arr']['_listLength'];
+        return $node->index === 'content'
+            || isset($node->position) && $node->position === $node->arr->_listLength;
     }
 
     /**
@@ -136,17 +143,17 @@ class Context {
         $node = $this->node;
 
         if (func_num_args() > 1) {
-            if ($force || !isset($node[$keyName])) {
-                $node[$keyName] = $value;
+            if ($force || !isset($node->$keyName)) {
+                $node->$keyName = $value;
             }
             return $this;
         }
 
         while ($node) {
-            if (isset($node[$keyName])) {
-                return $node[$keyName];
+            if (isset($node->$keyName)) {
+                return $node->$keyName;
             }
-            $node = $node['parentNode'];
+            $node = $node->parentNode;
         }
 
         return null;
@@ -155,13 +162,13 @@ class Context {
     /**
      * Применяет матчинг для переданного фрагмента BEMJSON.
      * Возвращает результат преобразований.
-     * @param BemJson bemJson
+     * @param BemJson $bemJson
      * @return array
      */
     function apply ($bemJson) {
         $prevCtx = $this->ctx;
         $prevNode = $this->node;
-        $res = $this->bh->processBemJson($bemJson, $prevCtx['block']);
+        $res = $this->bh->processBemJson($bemJson, $prevCtx->block);
         $this->ctx = $prevCtx;
         $this->node = $prevNode;
         return $res;
@@ -186,24 +193,25 @@ class Context {
      *    ], true);
      * });
      * ```
-     * @return {Ctx}
+     * @return Context
      */
     function applyBase () {
         $node = $this->node;
-        $json = $node['json'];
+        $json = $node->json;
 
-        if (!$json['elem'] && $json['mods']) {
-            $json['blockMods'] = $json['mods'];
+        if (empty($json->elem) && !empty($json->mods)) {
+            $json->blockMods = $json->mods;
         }
 
-        $block = $json['block'];
-        $blockMods = $json['blockMods'];
+        $block = $json->block;
+        $blockMods = $json->blockMods;
 
-        $subRes = $this->bh->_fastMatcher($this, $json);
+        $fm = $this->bh->_fastMatcher;
+        $subRes = $fm($this, $json);
         if ($subRes !== null) {
-            $this->ctx = $node['arr'][$node['index']] = $node['json'] = $subRes;
-            $node['blockName'] = $block; // need check
-            $node['blockMods'] = $blockMods;
+            $this->ctx = $node->arr->{$node->index} = $node->json = $subRes;
+            $node->blockName = $block; // need check
+            $node->blockMods = $blockMods;
         }
 
         return $this;
@@ -255,14 +263,15 @@ class Context {
      * @param boolean [$force]
      * @return string|null|Context
      */
-    function mod ($key, $value, $force) {
+    function mod ($key, $value = null, $force = false) {
         if (func_num_args() > 1) {
-            $mods = @$this->ctx['mods'] ?: ($this->ctx['mods'] = []);
-            $mods[$key] = !isset($mods[$key]) || $force ? $value : $mods[$key];
+            key_exists('mods', $this->ctx) || ($this->ctx->mods = new \stdClass());
+            $mods = $this->ctx->mods;
+            $mods->$key = !key_exists($key, $mods) || $force ? $value : $mods->$key;
             return $this;
         } else {
-            $mods = @$this->ctx['mods'];
-            return $mods ? $mods[$key] : null;
+            $mods = $this->ctx->mods;
+            return $mods && isset($mods->$key) ? $mods->$key : null;
         }
     }
 
@@ -282,12 +291,12 @@ class Context {
      * @return array|Context
      */
     function mods ($values = null, $force = false) {
-        $mods = @$this->ctx['mods'] ?: ($this->ctx['mods'] = []);
+        $mods = isset($this->ctx->mods) ? $this->ctx->mods : ($this->ctx->mods = new \stdClass());
         if ($values === null) {
             return $mods;
         }
 
-        $this->ctx['mods'] = $force ?
+        $this->ctx->mods = $force ?
             $this->extend($mods, $values)
             : $this->extend($values, $mods);
 
@@ -302,16 +311,18 @@ class Context {
      *     ctx.tag('input');
      * });
      * ```
-     * @param string [$tagName]
+     * @param string|null [$tagName]
      * @param boolean [$force]
      * @return string|null|Context
      */
     function tag ($tagName = null, $force = false) {
         if ($tagName === null) {
-            return isset($this->ctx['tag']) ? $this->ctx['tag'] : null;
+            return isset($this->ctx->tag) ? $this->ctx->tag : null;
         }
 
-        $this->ctx['tag'] = empty($this->ctx['tag']) || $force ? $tagName : $this->ctx['tag'];
+        if (empty($this->ctx->tag) || $force) {
+            $this->ctx->tag = $tagName;
+        }
 
         return $this;
     }
@@ -335,20 +346,21 @@ class Context {
      */
     function mix ($mix = null, $force = false) {
         if ($mix === null) {
-            return isset($this->ctx['mix']) ? $this->ctx['mix'] : null;
+            return isset($this->ctx->mix) ? (array)$this->ctx->mix : null;
         }
 
         if ($force) {
-            $this->ctx['mix'] = $mix;
+            $this->ctx->mix = $mix;
             return $this;
         }
 
-        if ($this->ctx['mix']) {
-            $this->ctx['mix'] = is_array($this->ctx['mix']) ?
-                array_merge($this->ctx['mix'], (array)$mix) :
-                array_merge([$this->ctx['mix']], (array)$mix);
+        if ($this->ctx->mix) {
+            // d($this->ctx->mix);
+            $this->ctx->mix = is_array($this->ctx->mix) ?
+                array_merge($this->ctx->mix, (array)$mix) :
+                array_merge([$this->ctx->mix], (array)$mix);
         } else {
-            $this->ctx['mix'] = $mix;
+            $this->ctx->mix = $mix;
         }
 
         return $this;
@@ -363,14 +375,12 @@ class Context {
      * @return string|null|Context
      */
     function attr ($key, $value = null, $force = false) {
+        $attrs = key_exists('attrs', $this->ctx) ? $this->ctx->attrs : ($this->ctx->attrs = new \stdClass());
         if ($value === null) {
-            return isset($this->ctx['attrs'][$key]) ? $this->ctx['attrs'][$key] : null;
+            return isset($attrs->$key) ? $attrs->$key : null;
         }
 
-        if (empty($this->ctx['attrs'])) {
-            $this->ctx['attrs'] = [];
-        }
-        $this->ctx['attrs'] = empty($attrs[$key]) || $force ? $value : $attrs[$key];
+        $attrs->$key = empty($attrs->$key) || $force ? $value : $attrs->$key;
 
         return $this;
     }
@@ -391,12 +401,12 @@ class Context {
      * @return {Object|Context
      */
     function attrs ($values = null, $force = false) {
-        $attrs = $this->ctx['attrs'] || [];
+        $attrs = $this->ctx->attrs || [];
         if ($values === null) {
             return $attrs;
         }
 
-        $this->ctx['attrs'] = $force ? $this->extend($attrs, $values) : $this->extend($values, $attrs);
+        $this->ctx->attrs = $force ? $this->extend($attrs, $values) : $this->extend($values, $attrs);
 
         return $this;
     }
@@ -416,10 +426,10 @@ class Context {
      */
     function bem ($bem = null, $force = false) {
         if ($bem === null) {
-            return isset($this->ctx['bem']) ? $this->ctx['bem'] : null;
+            return isset($this->ctx->bem) ? $this->ctx->bem : null;
         }
 
-        $this->ctx['bem'] = empty($this->ctx['bem']) || $force ? $bem : $this->ctx['bem'];
+        $this->ctx->bem = empty($this->ctx->bem) || $force ? $bem : $this->ctx->bem;
 
         return $this;
     }
@@ -439,12 +449,12 @@ class Context {
      */
     function js ($js = null, $force = false) {
         if ($js === null) {
-            return isset($this->ctx['js']) ? $this->ctx['js'] : null;
+            return isset($this->ctx->js) ? $this->ctx->js : null;
         }
 
-        $this->ctx['js'] = $force ?
+        $this->ctx->js = $force ?
             ($js === true ? [] : $js) :
-            $js ? $this->extend($this->ctx['js'], $js) : $this->ctx['js'];
+            $js ? $this->extend($this->ctx->js, $js) : $this->ctx->js;
 
         return $this;
     }
@@ -463,10 +473,10 @@ class Context {
      */
     function cls ($cls = null, $force = false) {
         if ($cls === null) {
-            return empty($this->ctx['cls']) ? null : $this->ctx['cls'];
+            return empty($this->ctx->cls) ? null : $this->ctx->cls;
         }
 
-        $this->ctx['cls'] = empty($this->ctx['cls']) || $force ? $cls : $this->ctx['cls'];
+        $this->ctx->cls = empty($this->ctx->cls) || $force ? $cls : $this->ctx->cls;
 
         return $this;
     }
@@ -488,10 +498,10 @@ class Context {
      */
     function param ($key, $value = null, $force = false) {
         if ($value === null) {
-            return isset($this->ctx[$key]) ? $this->ctx[$key] : null;
+            return isset($this->ctx->$key) ? $this->ctx->$key : null;
         }
 
-        $this->ctx[$key] = empty($this->ctx[$key]) || $force ? $value : $this->ctx[$key];
+        $this->ctx->$key = empty($this->ctx->$key) || $force ? $value : $this->ctx->$key;
 
         return $this;
     }
@@ -510,10 +520,10 @@ class Context {
      */
     function content ($value = null, $force = false) {
         if (func_num_args() === 0) {
-            return isset($this->ctx['content']) ? $this->ctx['content'] : null;
+            return isset($this->ctx->content) ? $this->ctx->content : null;
         }
 
-        $this->ctx['content'] = empty($this->ctx['content']) || $force ? $value : $this->ctx['content'];
+        $this->ctx->content = empty($this->ctx->content) || $force ? $value : $this->ctx->content;
 
         return $this;
     }
@@ -532,10 +542,10 @@ class Context {
      */
     function html ($value = null, $force = false) {
         if (func_num_args() === 0) {
-            return isset($this->ctx['html']) ? $this->ctx['html'] : null;
+            return isset($this->ctx->html) ? $this->ctx->html : null;
         }
 
-        $this->ctx['html'] = empty($this->ctx['html']) || $force ? $value : $this->ctx['html'];
+        $this->ctx->html = empty($this->ctx->html) || $force ? $value : $this->ctx->html;
 
         return $this;
     }
@@ -551,7 +561,7 @@ class Context {
      *     };
      * });
      * ```
-     * @return array
+     * @return Json
      */
     function json () {
         return $this->ctx;

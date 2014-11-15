@@ -1,6 +1,7 @@
 <?php
 
 use BEM\BH;
+define('undefined', '__halt_compiler__');
 
 class bhMatchTest extends PHPUnit_Framework_TestCase {
 

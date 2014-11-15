@@ -11,7 +11,7 @@ class tagTest extends PHPUnit_Framework_TestCase {
         $this->bh = new BH();
     }
 
-    function test_it_should_return_html_tag () {
+    /*function test_it_should_return_html_tag () {
         $this->bh->match('button', function ($ctx) {
             $this->assertEquals(
                 'button',
@@ -20,6 +20,7 @@ class tagTest extends PHPUnit_Framework_TestCase {
         });
         $this->bh->apply(['block' => 'button', 'tag' => 'button']);
     }
+*/
     function test_it_should_set_empty_tag () {
         $this->bh->match('link', function ($ctx) {
             $ctx->tag('');
@@ -32,6 +33,7 @@ class tagTest extends PHPUnit_Framework_TestCase {
             $this->bh->apply(['block' => 'button', 'content' => ['block' => 'link', 'content' => 'link']])
         );
     }
+
     function test_it_should_set_html_tag () {
         $this->bh->match('button', function ($ctx) {
             $ctx->tag('button');
@@ -41,6 +43,7 @@ class tagTest extends PHPUnit_Framework_TestCase {
             $this->bh->apply(['block' => 'button'])
         );
     }
+
     function test_it_should_not_override_user_tag () {
         $this->bh->match('button', function ($ctx) {
             $ctx->tag('button');
@@ -50,6 +53,7 @@ class tagTest extends PHPUnit_Framework_TestCase {
             $this->bh->apply(['block' => 'button', 'tag' => 'a'])
         );
     }
+
     function test_it_should_not_override_later_declarations () {
         $this->bh->match('button', function ($ctx) {
             $ctx->tag('input');
@@ -62,7 +66,8 @@ class tagTest extends PHPUnit_Framework_TestCase {
             $this->bh->apply(['block' => 'button'])
         );
     }
-    function test_it_should_override_later_declarations_with_force_fla__g () {
+
+    function test_it_should_override_later_declarations_with_force_flag () {
         $this->bh->match('button', function ($ctx) {
             $ctx->tag('input', true);
         });
@@ -74,7 +79,8 @@ class tagTest extends PHPUnit_Framework_TestCase {
             $this->bh->apply(['block' => 'button'])
         );
     }
-    function test_it_should_override_user_declarations_with_force_fla__g () {
+
+    function test_it_should_override_user_declarations_with_force_flag () {
         $this->bh->match('button', function ($ctx) {
             $ctx->tag('button', true);
         });
@@ -83,4 +89,5 @@ class tagTest extends PHPUnit_Framework_TestCase {
             $this->bh->apply(['block' => 'button', 'tag' => 'a'])
         );
     }
+
 }

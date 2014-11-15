@@ -26,7 +26,7 @@ class paramTest extends PHPUnit_Framework_TestCase {
         });
         $this->assertEquals(
             'button',
-            $this->bh->processBemJson(['block' => 'button'])['type']
+            $this->bh->processBemJson(['block' => 'button'])->type
         );
     }
     function test_it_should_not_override_user_param__ () {
@@ -35,7 +35,7 @@ class paramTest extends PHPUnit_Framework_TestCase {
         });
         $this->assertEquals(
             'link',
-            $this->bh->processBemJson(['block' => 'button', 'type' => 'link'])['type']
+            $this->bh->processBemJson(['block' => 'button', 'type' => 'link'])->type
         );
     }
     function test_it_should_not_override_later_declarations__ () {
@@ -47,7 +47,7 @@ class paramTest extends PHPUnit_Framework_TestCase {
         });
         $this->assertEquals(
             'button',
-            $this->bh->processBemJson(['block' => 'button'])['type']
+            $this->bh->processBemJson(['block' => 'button'])->type
         );
     }
     function test_it_should_override_later_declarations_with_force_fla__g () {
@@ -59,7 +59,7 @@ class paramTest extends PHPUnit_Framework_TestCase {
         });
         $this->assertEquals(
             'control',
-            $this->bh->processBemJson(['block' => 'button'])['type']
+            $this->bh->processBemJson(['block' => 'button'])->type
         );
     }
     function test_it_should_override_user_declarations_with_force_fla__g () {
@@ -68,7 +68,7 @@ class paramTest extends PHPUnit_Framework_TestCase {
         });
         $this->assertEquals(
             'button',
-            $this->bh->processBemJson(['block' => 'button', 'type' => 'link'])['type']
+            $this->bh->processBemJson(['block' => 'button', 'type' => 'link'])->type
         );
     }
 }

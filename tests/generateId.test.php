@@ -13,7 +13,7 @@ class generateIdTest extends PHPUnit_Framework_TestCase {
 
     function test_it_should_generate_different_ids___ () {
         $this->bh->match('button', function ($ctx) {
-            $this->assertEquals(
+            $this->assertNotEquals(
                 $ctx->generateId(),
                 $ctx->generateId()
             );
@@ -35,6 +35,6 @@ class generateIdTest extends PHPUnit_Framework_TestCase {
         });
         $this->bh->apply(['block' => 'button2']);
 
-        $this->assertEquals($id1, $id2);
+        $this->assertNotEquals($id1, $id2);
     }
 }

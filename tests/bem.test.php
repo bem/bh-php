@@ -13,10 +13,11 @@ class ctxBemTest extends PHPUnit_Framework_TestCase {
 
     function test_it_should_return_bem_by_default () {
         $this->bh->match('button', function ($ctx) {
-            $this->shouldEquals(null, $ctx->bem());
+            $this->assertEquals(null, $ctx->bem());
         });
         $this->bh->apply(['block' => 'button']);
     }
+
     function test_it_should_set_bem_to_false__ () {
         $this->bh->match('button', function ($ctx) {
             $ctx->bem(false);
@@ -25,6 +26,7 @@ class ctxBemTest extends PHPUnit_Framework_TestCase {
             '<div></div>',
             $this->bh->apply(['block' => 'button']));
     }
+
     function test_it_should_not_override_user_bem__ () {
         $this->bh->match('button', function ($ctx) {
             $ctx->bem(false);
@@ -33,6 +35,7 @@ class ctxBemTest extends PHPUnit_Framework_TestCase {
             '<div class="button"></div>',
             $this->bh->apply(['block' => 'button', 'bem' => true]));
     }
+
     function test_it_should_not_override_later_declarations__ () {
         $this->bh->match('button', function ($ctx) {
             $ctx->bem(false);
@@ -44,6 +47,7 @@ class ctxBemTest extends PHPUnit_Framework_TestCase {
             '<div class="button"></div>',
             $this->bh->apply(['block' => 'button']));
     }
+
     function test_it_should_override_later_declarations_with_force_fla__g () {
         $this->bh->match('button', function ($ctx) {
             $ctx->bem(false, true);
@@ -55,6 +59,7 @@ class ctxBemTest extends PHPUnit_Framework_TestCase {
             '<div></div>',
             $this->bh->apply(['block' => 'button']));
     }
+
     function test_it_should_override_user_declarations_with_force_fla__g () {
         $this->bh->match('button', function ($ctx) {
             $ctx->bem(false, true);
