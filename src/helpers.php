@@ -6,6 +6,10 @@ if (!defined('__undefined')) {
     define('__undefined', '\0undefined');
 }
 
+function weakjson_decode($s) {
+    return WeakJsonParser::decode($s);
+}
+
 /**
  * Checks an array to be a simple array
  * @param mixed $array

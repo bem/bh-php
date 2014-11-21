@@ -315,7 +315,7 @@ class BH {
             $c = $bemJson[0];
             $l = $bemJson[strlen($bemJson) - 1];
             if ($c === '{' && $l === '}' || $c === '[' && $l === ']') {
-                $bemJson = json_decode($bemJson);
+                return $this->processBemJson(weakjson_decode($bemJson));
             } else {
                 // return as is
                 return $bemJson;
