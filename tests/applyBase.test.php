@@ -20,8 +20,9 @@ class applyBaseTest extends PHPUnit_Framework_TestCase {
             $ctx->tag('span');
         });
         $this->assertEquals(
-            $this->bh->apply(['block' => 'button']),
-            '<span class="button button_type_span"></span>');
+            '<span class="button button_type_span"></span>',
+            $this->bh->apply(['block' => 'button'])
+        );
     }
 
     function test_it_should_apply_base_matcher_for_content () {
@@ -41,14 +42,14 @@ class applyBaseTest extends PHPUnit_Framework_TestCase {
             ], true);
         });
         $this->assertEquals(
-            $this->bh->apply(['block' => 'button', 'content' => 'Hello']),
             '<div class="button">' .
                 '<div class="button__before"></div>' .
                 '<div class="button__base-before"></div>' .
                 'Hello' .
                 '<div class="button__base-after"></div>' .
                 '<div class="button__after"></div>' .
-            '</div>'
+            '</div>',
+            $this->bh->apply(['block' => 'button', 'content' => 'Hello'])
         );
     }
 
@@ -69,14 +70,14 @@ class applyBaseTest extends PHPUnit_Framework_TestCase {
             ];
         });
         $this->assertEquals(
-            $this->bh->apply(['block' => 'button', 'content' => 'Hello']),
             '<div class="button__before"></div>' .
                 '<div class="button__base-before"></div>' .
                     '<div class="button">' .
                         'Hello' .
                     '</div>' .
                 '<div class="button__base-after"></div>' .
-            '<div class="button__after"></div>'
+            '<div class="button__after"></div>',
+            $this->bh->apply(['block' => 'button', 'content' => 'Hello'])
         );
     }
 
@@ -93,7 +94,7 @@ class applyBaseTest extends PHPUnit_Framework_TestCase {
         });
         $this->bh->match('select__control', function ($ctx) {
             $ctx->applyBase();
-            $this->assertEquals($ctx->tParam('foo') + $ctx->tParam('bar') + $ctx->tParam('lol'), 66);
+            $this->assertEquals(66, $ctx->tParam('foo') + $ctx->tParam('bar') + $ctx->tParam('lol'));
         });
         $this->bh->apply(['block' => 'select', 'mods' => ['disabled' => true], 'content' => ['elem' => 'control']]);
     }
@@ -111,14 +112,14 @@ class applyBaseTest extends PHPUnit_Framework_TestCase {
             $ctx->applyBase();
         });
         $this->assertEquals(
+            '<div class="button button_first_yes"></div>' .
+            '<div class="button"></div>' .
+            '<div class="button button_last_yes"></div>',
             $this->bh->apply([
                 ['block' => 'button'],
                 ['block' => 'button'],
                 ['block' => 'button']
-            ]),
-            '<div class="button button_first_yes"></div>' .
-            '<div class="button"></div>' .
-            '<div class="button button_last_yes"></div>'
+            ])
         );
     }
 }

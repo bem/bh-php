@@ -2,7 +2,7 @@
 
 namespace BEM;
 
-include "helpers.php";
+require_once "helpers.php";
 
 class BH {
 
@@ -205,7 +205,7 @@ class BH {
         $this->_matchers[] = [ // better to make it via Matcher object with __invoke
             'expr' => $expr,
             'fn'   => $matcher,
-            '__id' => '__func' . ($this->_lastMatchId++)
+            '__id' => ($this->_lastMatchId++)
         ];
 
         // cleanup cached matcher to rebuild it on next render
@@ -234,49 +234,47 @@ class BH {
         }
 
         $declByBlock = static::groupBy($declarations, 'block');
-        $res[] = '$applyMatchers = function ($ctx, $json) use ($ms) {'; // ?
+        $res[] = 'return function ($ctx, $json) use ($ms) {'; // ?
         $res[] = join(";\n", $vars) . ';';
 
-        $res[] = ('switch (isset($json->block)?$json->block:__undefined) { /*block*/');
+        $res[] = ('switch ($json->block ?: __undefined) { /*block*/');
         foreach ($declByBlock as $blockName => $blockData) {
             $res[] = ('case "' . static::strEscape($blockName) . '":');
             $declsByElem = static::groupBy($blockData, 'elem');
 
             //$res[] = ('\\BEM\\d($json);');
 
-            $res[] = ('switch (isset($json->elem)?$json->elem:__undefined) { /*elem*/');
+            $res[] = ('  switch ($json->elem ?: __undefined) { /*elem*/');
             foreach ($declsByElem as $elemName => $decls) {
                 if ($elemName === __undefined) {
-                    $res[] = ('case __undefined:');
+                    $res[] = ('  case __undefined:');
                 } else {
-                    $res[] = ('case "' . static::strEscape($elemName) . '":');
+                    $res[] = ('  case "' . static::strEscape($elemName) . '":');
                 }
                 for ($j = 0, $l = sizeof($decls); $j < $l; $j++) {
                     $decl = $decls[$j];
                     $__id = $decl['__id'];
                     $conds = [];
-                    $conds[] = ('empty($json->' . $__id . ')');
+                    $conds[] = ('!isset($json->__funcs[' . $__id . '])');
                     if (isset($decl['elemMod'])) {
-                        $modKey = static::strEscape($decl["elemMod"]);
+                        $modKey = static::strEscape($decl['elemMod']);
                         $conds[] = (
-                            '$json->mods && key_exists("' . $modKey . '", $json->mods) && $json->mods->{"' . $modKey . '"} === ' .
+                            'is_object($json->mods) && key_exists("' . $modKey . '", $json->mods) && $json->mods->{"' . $modKey . '"} === ' .
                                 ($decl['elemModVal'] === true ? 'true' : '"' . static::strEscape($decl['elemModVal']) . '"'));
                     }
                     if (isset($decl['blockMod'])) {
                         $modKey = static::strEscape($decl["blockMod"]);
                         $conds[] = (
-                            'key_exists("' . $modKey . '", $json->blockMods) && $json->blockMods->{"' . $modKey . '"} === ' .
+                            'is_object($json->blockMods) && key_exists("' . $modKey . '", $json->blockMods) && $json->blockMods->{"' . $modKey . '"} === ' .
                                 ($decl['blockModVal'] === true ? 'true' : '"' . static::strEscape($decl['blockModVal']) . '"'));
                     }
 
-                    $res[] = ('if (' . join(' && ', $conds) . ') {');
-                    $res[] = ('$json->' . $__id . ' = true;');
-                    // $res[] = '\\BEM\\d("callingMatcher#' . $__id . '", compact("json"));';
-                    $res[] = ('$subRes = $_m' . $decl['index'] . '($ctx, $json);');
-                    // $res[] = '\\BEM\\d("callingMatcherResult#' . $__id . '", compact("json", "subRes"));';
-                    $res[] = ('if ($subRes !== null) { return ($subRes ?: ""); }');
-                    $res[] = ('if (!empty($json->_stop)) return;');
-                    $res[] = ('}');
+                    $res[] = ('    if (' . join(' && ', $conds) . ') {');
+                    $res[] = ('      $json->__funcs[' . $__id . '] = true;');
+                    $res[] = ('      $subRes = $_m' . $decl['index'] . '($ctx, $json);');
+                    $res[] = ('      if ($subRes !== null) { return ($subRes ?: ""); }');
+                    $res[] = ('      if ($json->_stop) return;');
+                    $res[] = ('    }');
                 }
                 $res[] = ('return;');
             }
@@ -286,7 +284,6 @@ class BH {
         }
         $res[] = ('}');
         $res[] = ('};');
-        $res[] = ('return $applyMatchers;');
         $res = "<?php\nreturn function (\$ms) {\n" . join("\n", $res) . "\n};";
         file_put_contents("./tmp/bh-matcher.php", $res); // debugging purposes only (!!!)
         $constructor = include("./tmp/bh-matcher.php"); //eval($res);
@@ -304,36 +301,57 @@ class BH {
         //$_callId = static::$_toHtmlCallId ++;
         //d('processBemjson#' . $_callId, $bemJson);
         if (empty($bemJson)) {
-            return;
+            return is_array($bemJson) ? '<div></div>' : '';
         }
 
         if (!$this->_inited) {
             $this->_init();
         }
 
-        if (is_array($bemJson)) {
-            $bemJson = json_decode(str_replace('[]', '{}', json_encode($bemJson)), false);
+        // trying to parse
+        if (is_scalar($bemJson)) {
+            // string? like '{...}' || '[{...}]' || '([...])'
+            $bemJson = trim(trim(trim($bemJson), '()'));
+            $c = $bemJson[0];
+            $l = $bemJson[strlen($bemJson) - 1];
+            if ($c === '{' && $l === '}' || $c === '[' && $l === ']') {
+                $bemJson = json_decode($bemJson);
+            } else {
+                // return as is
+                return $bemJson;
+            }
         }
 
-        // fixup arr property ;-( move to Bem\Json later
-        $resultArr = new \stdClass();
-        $resultArr->{0} = $bemJson;
-        $blockMods = (empty($bemJson->elem) && isset($bemJson->mods)) ? $bemJson->mods : new \stdClass();
+        $resultArr = JsonCollection::normalize($bemJson);
+        if (sizeof($resultArr) > 1) {
+            $resultArr = new \ArrayObject([$resultArr]);
+        }
 
-        $nodes = [new Node([
+        $bemJson = $resultArr[0];
+        $blockMods = null;
+        if ($bemJson instanceof Json) {
+            $blockMods = (!$bemJson->elem && $bemJson->mods) ? $bemJson->mods
+                : (new Mods());
+        }
+
+        $steps = [];
+        $steps[] = new Step([
             'json' => $bemJson,
             'arr' => $resultArr,
             'index' => 0,
             'blockName' => $blockName,
             'blockMods' => $blockMods
-        ])];
+        ]);
 
         // var compiledMatcher = (this._fastMatcher || (this._fastMatcher = Function('ms', this.buildMatcher())(this._matchers)));
         if (empty($this->_fastMatcher)) {
             $fn = $this->buildMatcher();
-            $this->_fastMatcher = $fn($this->_matchers);
+            $this->_fastMatcher = [
+                '__processCounter' => 0,
+                'fn' => $fn($this->_matchers)
+            ];
         }
-        $compiledMatcher = $this->_fastMatcher;
+        $compiledMatcher =& $this->_fastMatcher;
 
         $processContent = !$ignoreContent;
         $infiniteLoopDetection = $this->_infiniteLoopDetection;
@@ -341,50 +359,59 @@ class BH {
         $ctx = new Context($this);
 
         // js: while (node = nodes.shift()) {
-        while ($node = array_shift($nodes)) {
-            $json = $node->json;
-            $block = $node->blockName;
-            $blockMods = $node->blockMods;
+        $stepn = 0;
+        while ($step = array_shift($steps)) {
+            $json = $step->json;
+            $blockName = $step->blockName;
+            $blockMods = $step->blockMods;
 
-            if (isList($json)) {
-                // $node->json = new \stdClass();
-                foreach ($json as $child) {
+            // d($stepn++, $step);
+            if ($json instanceof JsonCollection) {
+                $j = 0;
+                $arr = $json;
+                foreach ($arr as $i => $child) {
                     if (is_array($child)) {
-                        $child = json_decode(str_replace('[]', '{}', json_encode($child)), false);
+                        $child = $arr[$i] = new Json($child);
                     }
                     if (is_object($child)) {
-                        $nodes[] = new Node([
+                        $steps[] = new Step([
                             'json' => $child,
-                            'arr' => $json,
+                            'arr' => $arr,
                             'index' => $i,
                             'position' => ++$j,
-                            'blockName' => $block,
+                            'blockName' => $blockName,
                             'blockMods' => $blockMods,
-                            'parentNode' => $node
+                            'parentNode' => $step // step
                         ]);
                     }
                 }
-                // $json->_listLength = $j;
+                $arr->_listLength = $j;
 
             } else {
                 $stopProcess = false;
-                if (!empty($json->elem)) {
-                    $block = $json->block = isset($json->block) ? $json->block : $block;
+
+                if (is_scalar($json) || is_null($json)) {
+                    // skip
+                } elseif ($json->elem) {
+                    $blockName = $json->block = isset($json->block) ? $json->block : $blockName;
                     // blockMods = json.blockMods = json.blockMods || blockMods
-                    $blockMods = $json->blockMods = empty($json->blockMods) ? $blockMods : $json->blockMods;
-                    if (!empty($json->elemMods)) {
+                    $blockMods = $json->blockMods = $json->blockMods ?: $blockMods;
+                    if ($json->elemMods) {
+                        if (is_array($json->elemMods)) {
+                            $json->elemMods = new Mods($json->elemMods);
+                        }
                         $json->mods = $json->elemMods;
                     }
-                } elseif (!empty($json->block)) {
-                    $block = $json->block;
-                    $blockMods = $json->blockMods = isset($json->mods) ? $json->mods : new \stdClass();
+                } elseif ($json->block) {
+                    $blockName = $json->block;
+                    $blockMods = $json->blockMods = $json->mods ?: new Mods();
                 }
 
-                if (!empty($json->block)) {
+                if ($json && $json->block) {
 
                     if ($infiniteLoopDetection) {
-                        $json->__processCounter = ($json->__processCounter ?: 0) + 1;
-                        $compiledMatcher['__processCounter'] = ($compiledMatcher['__processCounter'] ?: 0) + 1; // bug here
+                        $json->__processCounter = (key_exists('__processCounter', $json) ? $json->__processCounter : 0) + 1;
+                        $compiledMatcher['__processCounter']++;
                         if ($json->__processCounter > 100) {
                             throw new \Exception('Infinite json loop detected at "' . $json->block . ($json->elem ? '__' . $json->elem : '') . '".');
                         }
@@ -393,79 +420,61 @@ class BH {
                         }
                     }
 
-                    if (empty($json->_stop)) {
-                        $ctx->node = $node;
+                    if (!$json->_stop) {
+                        $ctx->node = $step;
                         $ctx->ctx = $json;
-                        //var_dump(compact('json'));
-                        $subRes = $compiledMatcher($ctx, $json);
-                        //var_dump(compact('subRes', 'json'));
+                        $subRes = $compiledMatcher['fn']($ctx, $json);
                         if ($subRes !== null) {
-                            $json = $subRes;
-                            $node->json = $json;
-                            $node->blockName = $block;
-                            $node->blockMods = $blockMods;
-                            $nodes[] = $node;
+                            $json = JsonCollection::normalize($subRes);
+                            $step->json = $json;
+                            $step->blockName = $blockName;
+                            $step->blockMods = $blockMods;
+                            $steps[] = $step;
                             $stopProcess = true;
                         }
                     }
 
                 }
 
-                if (!$stopProcess) {
-                    if ($processContent && isset($json->content)) {
-                        $content = $json->content;
-                        if (isList($content)) {
-                            /*do {
-                                $flatten = false;
-                                for ($i = 0, $l = sizeof($content); $i < $l; $i++) {
-                                    if (isList($content[$i])) {
-                                        $flatten = true;
-                                        break;
-                                    }
-                                }
-                                if ($flatten) {
-                                    $json->content = call_user_func_array("array_merge", $content);
-                                    $content = $json->content;
-                                }
-                            } while ($flatten);*/
-                            $content = $json->content;
-                            for ($i = 0, $j = 0, $l = sizeof($content), $p = $l - 1; $i < $l; $i++) {
-                                $child = $content[$i];
-                                if (is_object($child) || is_array($child)) {
-                                    $nodes[] = new Node([
-                                        'json' => $child,
-                                        'arr' => $content,
-                                        'index' => $i,
-                                        'position' => ++$j,
-                                        'blockName' => $block,
-                                        'blockMods' => $blockMods,
-                                        'parentNode' => $node
-                                    ]);
-                                }
+                if (!$stopProcess && $processContent && isset($json->content) && !is_scalar($json->content)) {
+                    $content = $json->content;
+                    if ($content instanceof JsonCollection) {
+                        $arr = $content;
+                        for ($i = 0, $j = 0, $l = sizeof($arr); $i < $l; $i++) {
+                            $child = $content[$i];
+                            if (is_object($child) || is_array($child)) {
+                                $steps[] = new Step([
+                                    'json' => $child,
+                                    'arr' => $content,
+                                    'index' => $i,
+                                    'position' => ++$j,
+                                    'blockName' => $blockName,
+                                    'blockMods' => $blockMods,
+                                    'parentNode' => $step
+                                ]);
                             }
-                            // $content['_listLength'] = $j;
-                        } else {
-                            $nodes[] = new Node([
-                                'json' => $content,
-                                'arr' => $json,
-                                'index' => 'content',
-                                'blockName' => $block,
-                                'blockMods' => $blockMods,
-                                'parentNode' => $node
-                            ]);
                         }
+                        $content->_listLength = $j;
+
+                    } else {
+                        throw new \Exception('asdasd');
+                        /*$steps[] = new Step([
+                            'json' => $content,
+                            'arr' => JsonCollection::normalize($json),
+                            'index' => 'content',
+                            'blockName' => $blockName,
+                            'blockMods' => $blockMods,
+                            'parentNode' => $step
+                        ]);*/
                     }
                 }
             }
-            if (is_object($node->arr)) {
-                $node->arr->{$node->index} = $json;
-            } else {
-                $node->arr[$node->index] = $json;
-            }
+
+            $step->arr[$step->index] = $json;
         }
 
         //d('processBemjson#' . ($_callId) . ' out ', $resultArr[0]);
-        return $resultArr->{0};
+        return $resultArr[0];
     }
 
     /**
@@ -482,7 +491,7 @@ class BH {
             return $this->_optEscapeContent ? $this->xmlEscape($json) : $json;
         }
 
-        if (isList($json)) {
+        if (isList($json) || $json instanceof JsonCollection) {
             $res = '';
             foreach ($json as $item) {
                 if ($item !== false && $item !== null) {
@@ -492,14 +501,10 @@ class BH {
             return $res;
 
         } else {
-            $isBEM = !key_exists('bem', $json) || $json->bem !== false;
+            $isBEM = (!key_exists('bem', $json)) || ($json->bem !== false);
 
             if (key_exists('tag', $json) && !$json->tag) {
-                return empty($json->html) && empty($json->content) ? '' : $this->toHtml($json->content);
-            }
-
-            if (isset($json->mix) && !isList($json->mix)) {
-                $json->mix = [$json->mix];
+                return !key_exists('html', $json) && is_null($json->content) ? '' : $this->toHtml($json->content);
             }
 
             $cls = '';
@@ -518,49 +523,52 @@ class BH {
                 // hardcoded naming
                 $base = (!empty($json->block) ? $json->block : '') . (!empty($json->elem) ? '__' . $json->elem : '');
 
+                $jsParams = false;
                 if (!empty($json->block)) {
                     $cls = static::toBemCssClasses($json, $base);
-                    if (isset($json->js)) {
+                    if (key_exists('js', $json) && $json->js !== false) {
                         $jsParams = [];
                         $jsParams[$base] = $json->js === true ? [] : $json->js;
                     }
                 }
 
-                if (!empty($json->mix)) {
-                    // if (!is_array($json->mix)) check me!
-                    foreach ($mix as $json->mix) {
-                        if (!$mix || @$mix->bem === false) {
+                if (key_exists('mix', $json) && $json->mix) {
+                    foreach ($json->mix as $mix) {
+                        if (!$mix || (key_exists('bem', $mix) && $mix->bem === false)) {
                             continue;
                         }
-                        $mixBlock = @$mix->block ?: @$json->block ?: '';
-                        $mixElem = @$mix->elem ?: (@$mix->block ? null : (@$json->block ?: $json->elem)); // ehm?
-                        $mixBase = $mixBlock . ($mixElem ? '__' . $mixElem : '');
 
+                        // var mixBlock = mix.block || json.block || ''
+                        $mixBlock = $mix->block ?: $json->block;
                         if (!$mixBlock) {
                             continue;
                         }
 
+                        // mixElem = mix.elem || (mix.block ? null : json.block && json.elem)
+                        $mixElem = $mix->elem ?: ($mix->block ? null : ($json->block ? $json->elem : null));
+                        $mixBase = $mixBlock . ($mixElem ? '__' . $mixElem : '');
+
                         $cls .= static::toBemCssClasses($mix, $mixBase, $base);
-                        if (!empty($mix->js)) {
-                            $jsParams = !empty($jsParams) ? $jsParams: [];
+                        if (key_exists('js', $mix) && $mix->js !== false) {
+                            $jsParams = $jsParams ?: [];
                             $jsParams[$mixBase] = $mix->js === true ? [] : $mix->js;
                             $hasMixJsParams = true;
                         }
                     }
                 }
 
-                if (!empty($jsParams)) {
+                if ($jsParams) {
                     $cls = $cls . ' i-bem';
                     $jsData = !$hasMixJsParams && $json->js === true ?
                         '{&quot;' . $base . '&quot;:{}}' :
-                        $this->attrEscape(json_encode($jsParams, JSON_UNESCAPED_UNICODE));
-                    $attrs .= ' ' . ($json->jsAttr ?: $this->_optJsAttrName) . '="' .
+                        $this->attrEscape(str_replace('[]', '{}', json_encode($jsParams, JSON_UNESCAPED_UNICODE)));
+                    $attrs .= ' ' . (key_exists('jsAttr', $json) ? $json->jsAttr : $this->_optJsAttrName) . '="' .
                         ($this->_optJsAttrIsJs ? 'return ' . $jsData : $jsData) . '"';
                 }
             }
 
             $cls = (!empty($cls) ? $cls : '') .
-                (!empty($json->cls) ? (!empty($cls) ? ' ' : '') . $json->cls : '');
+                (key_exists('cls', $json) ? (!empty($cls) ? ' ' : '') . $json->cls : '');
 
             $tag = key_exists('tag', $json) ? $json->tag : 'div';
             $res = '<' . $tag . ($cls ? ' class="' . $this->attrEscape($cls) . '"' : '') . ($attrs ? $attrs : '');
@@ -571,9 +579,9 @@ class BH {
                 $res .= '>';
                 if (!empty($json->html)) {
                     $res .= $json->html;
-                } elseif (!empty($json->content)) {
+                } elseif (!is_null($json->content)) {
                     $content = $json->content;
-                    if (isList($content)) {
+                    if (isList($content) || $content instanceof JsonCollection) {
                         foreach ($content as $item) {
                             if ($item !== false && $item !== null) {
                                 $res .= $this->toHtml($item);
@@ -607,6 +615,11 @@ class BH {
     }
 
     public static function attrEscape($s) {
+        if (!is_string($s)) {
+            if (is_bool($s)) {
+                return $s ? 'true' : 'false';
+            }
+        }
         return htmlspecialchars($s, ENT_QUOTES);
     }
 
@@ -625,8 +638,8 @@ class BH {
         }
 
         // if (mods = json.mods || json.elem && json.elemMods)
-        $mods = key_exists('mods', $json) ? $json->mods :
-            (!empty($json->elem) && key_exists('elemMods', $json) ? $json->elemMods : false);
+        $mods = $json->mods ?:
+            ($json->elem && key_exists('elemMods', $json) ? $json->elemMods : null);
         if ($mods) {
             foreach ($mods as $k => $mod) {
                 if ($mod) {

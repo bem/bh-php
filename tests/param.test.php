@@ -11,7 +11,7 @@ class paramTest extends PHPUnit_Framework_TestCase {
         $this->bh = new BH();
     }
 
-    function test_it_should_return_param____ () {
+    function test_it_should_return_param () {
         $this->bh->match('button', function ($ctx) {
             $this->assertEquals(
                 'button',
@@ -20,7 +20,8 @@ class paramTest extends PHPUnit_Framework_TestCase {
         });
         $this->bh->apply(['block' => 'button', 'type' => 'button']);
     }
-    function test_it_should_set_param____ () {
+
+    function test_it_should_set_param () {
         $this->bh->match('button', function ($ctx) {
             $ctx->param('type', 'button');
         });
@@ -29,7 +30,8 @@ class paramTest extends PHPUnit_Framework_TestCase {
             $this->bh->processBemJson(['block' => 'button'])->type
         );
     }
-    function test_it_should_not_override_user_param__ () {
+
+    function test_it_should_not_override_user_param () {
         $this->bh->match('button', function ($ctx) {
             $ctx->param('type', 'button');
         });
@@ -38,7 +40,8 @@ class paramTest extends PHPUnit_Framework_TestCase {
             $this->bh->processBemJson(['block' => 'button', 'type' => 'link'])->type
         );
     }
-    function test_it_should_not_override_later_declarations__ () {
+
+    function test_it_should_not_override_later_declarations () {
         $this->bh->match('button', function ($ctx) {
             $ctx->param('type', 'control');
         });
@@ -50,7 +53,8 @@ class paramTest extends PHPUnit_Framework_TestCase {
             $this->bh->processBemJson(['block' => 'button'])->type
         );
     }
-    function test_it_should_override_later_declarations_with_force_fla__g () {
+
+    function test_it_should_override_later_declarations_with_force_flag () {
         $this->bh->match('button', function ($ctx) {
             $ctx->param('type', 'control', true);
         });
@@ -62,7 +66,8 @@ class paramTest extends PHPUnit_Framework_TestCase {
             $this->bh->processBemJson(['block' => 'button'])->type
         );
     }
-    function test_it_should_override_user_declarations_with_force_fla__g () {
+
+    function test_it_should_override_user_declarations_with_force_flag () {
         $this->bh->match('button', function ($ctx) {
             $ctx->param('type', 'button', true);
         });

@@ -2,7 +2,7 @@
 
 use BEM\BH;
 
-class content extends PHPUnit_Framework_TestCase {
+class contentTest extends PHPUnit_Framework_TestCase {
 
     /**
      * @before
@@ -65,7 +65,7 @@ class content extends PHPUnit_Framework_TestCase {
             $this->bh->apply(['block' => 'button']));
     }
 
-    function test_it_should_not_override_user_content__ () {
+    function test_it_should_not_override_user_content () {
         $this->bh->match('button', function ($ctx) {
             $ctx->content(['elem' => 'text']);
         });

@@ -5,15 +5,18 @@
          backupStaticAttributes="false"
          bootstrap="vendor/autoload.php"
          colors="true"
-         convertErrorsToExceptions="true"
-         convertNoticesToExceptions="true"
-         convertWarningsToExceptions="true"
+         _convertErrorsToExceptions="true"
+         _convertNoticesToExceptions="true"
+         _convertWarningsToExceptions="true"
          processIsolation="false"
          stopOnFailure="false"
          syntaxCheck="false"
         >
 
     <testsuites>
+        <testsuite name="Basic">
+            <directory suffix=".test.php">./tests/basic/</directory>
+        </testsuite>
         <testsuite name="BH">
             <directory suffix=".test.php">./tests/</directory>
         </testsuite>

@@ -11,7 +11,7 @@ class jsTest extends PHPUnit_Framework_TestCase {
         $this->bh = new BH();
     }
 
-    function test_it_should_return_js____ () {
+    function test_it_should_return_js () {
         $this->bh->match('button', function ($ctx) {
             $this->assertEquals(
                 true,
@@ -20,7 +20,7 @@ class jsTest extends PHPUnit_Framework_TestCase {
         });
         $this->bh->apply(['block' => 'button', 'js' => true]);
     }
-    function test_it_should_set_js____ () {
+    function test_it_should_set_js () {
         $this->bh->match('button', function ($ctx) {
             $ctx->js(true);
         });
@@ -29,7 +29,7 @@ class jsTest extends PHPUnit_Framework_TestCase {
             $this->bh->apply(['block' => 'button'])
         );
     }
-    function test_it_should_not_set_js___ () {
+    function test_it_should_not_set_js () {
         $this->bh->match('button', function ($ctx) {
             $ctx->js(false);
         });
@@ -38,7 +38,7 @@ class jsTest extends PHPUnit_Framework_TestCase {
             $this->bh->apply(['block' => 'button'])
         );
     }
-    function test_it_should_set_elem_js___ () {
+    function test_it_should_set_elem_js () {
         $this->bh->match('button__control', function ($ctx) {
             $ctx->js(true);
         });
@@ -49,7 +49,7 @@ class jsTest extends PHPUnit_Framework_TestCase {
             $this->bh->apply(['block' => 'button', 'content' => ['elem' => 'control']])
         );
     }
-    function test_it_should_not_override_user_js__ () {
+    function test_it_should_not_override_user_js () {
         $this->bh->match('button', function ($ctx) {
             $ctx->js(['a' => 2]);
         });
@@ -58,7 +58,7 @@ class jsTest extends PHPUnit_Framework_TestCase {
             $this->bh->apply(['block' => 'button', 'js' => ['x' => 1]])
         );
     }
-    function test_it_should_not_override_later_declarations__ () {
+    function test_it_should_not_override_later_declarations () {
         $this->bh->match('button', function ($ctx) {
             $ctx->js(false);
         });
@@ -70,7 +70,7 @@ class jsTest extends PHPUnit_Framework_TestCase {
             $this->bh->apply(['block' => 'button'])
         );
     }
-    function test_it_should_override_later_declarations_with_force_fla__g () {
+    function test_it_should_override_later_declarations_with_force_flag () {
         $this->bh->match('button', function ($ctx) {
             $ctx->js(false, true);
         });
@@ -82,7 +82,7 @@ class jsTest extends PHPUnit_Framework_TestCase {
             $this->bh->apply(['block' => 'button'])
         );
     }
-    function test_it_should_override_user_declarations_with_force_fla__g () {
+    function test_it_should_override_user_declarations_with_force_flag () {
         $this->bh->match('button', function ($ctx) {
             $ctx->js(false, true);
         });

@@ -3,7 +3,7 @@
 namespace BEM;
 
 /**
- * BemJson node context class
+ * BH engine context
  */
 class Context {
 
@@ -14,9 +14,17 @@ class Context {
     static $lastGenId = 0;
 
     protected $_expandoId = null;
+
+    /**
+     * @var Json
+     */
     public $ctx = null;
 
+    /**
+     * @var BH
+     */
     public $bh;
+
     public $mix;
 
     /**
@@ -39,7 +47,7 @@ class Context {
      * @return boolean
      */
     function isSimple ($obj) {
-        return is_scalar($obj);
+        return is_scalar($obj) || is_null($obj);
     }
 
     /**
@@ -52,19 +60,28 @@ class Context {
      * @return array
      */
     function extend ($target) {
-        if (!$target || !is_array($target)) { // probably wrong
-            $target = new \stdClass();
+        if (!$target || is_scalar($target)) {
+            $target = [];
         }
 
-        // array_merge?
         $args = func_get_args();
-        for ($i = 1, $l = sizeof($args); $i < $l; $i++) {
-            $obj = $args[$i];
-            if (!$obj) {
+        $isArr = is_array($target) || $target instanceof \ArrayAccess;
+        $isObj = !$isArr && is_object($target);
+
+        foreach ($args as $obj) {
+            if (!$obj || (!is_array($obj) && !is_object($obj))) {
                 continue;
             }
+            $obj = $obj instanceof \Iterator ? $obj : (array)$obj;
             foreach ($obj as $k => $v) {
-                $target->$k = $v;
+                if ($isArr) {
+                    $target[$k] = $v;
+                } elseif ($isObj) {
+                    $target->$k = $v;
+                } else {
+                    throw new Exception('Woops.');
+                    // ?
+                }
             }
         }
 
@@ -139,19 +156,19 @@ class Context {
      * @return Context|mixed
      */
     function tParam ($key, $value = null, $force = false) {
-        $keyName = '__tp_' + $key;
+        $keyName = $key;
         $node = $this->node;
 
         if (func_num_args() > 1) {
-            if ($force || !isset($node->$keyName)) {
-                $node->$keyName = $value;
+            if ($force || !isset($node->tParams[$keyName])) {
+                $node->tParams[$keyName] = $value;
             }
             return $this;
         }
 
         while ($node) {
-            if (isset($node->$keyName)) {
-                return $node->$keyName;
+            if (isset($node->tParams[$keyName])) {
+                return $node->tParams[$keyName];
             }
             $node = $node->parentNode;
         }
@@ -199,7 +216,7 @@ class Context {
         $node = $this->node;
         $json = $node->json;
 
-        if (empty($json->elem) && !empty($json->mods)) {
+        if (!$json->elem && $json->mods) {
             $json->blockMods = $json->mods;
         }
 
@@ -207,9 +224,9 @@ class Context {
         $blockMods = $json->blockMods;
 
         $fm = $this->bh->_fastMatcher;
-        $subRes = $fm($this, $json);
+        $subRes = $fm['fn']($this, $json);
         if ($subRes !== null) {
-            $this->ctx = $node->arr->{$node->index} = $node->json = $subRes;
+            $this->ctx = $node->arr[$node->index] = $node->json = JsonCollection::normalize($subRes);
             $node->blockName = $block; // need check
             $node->blockMods = $blockMods;
         }
@@ -265,7 +282,7 @@ class Context {
      */
     function mod ($key, $value = null, $force = false) {
         if (func_num_args() > 1) {
-            key_exists('mods', $this->ctx) || ($this->ctx->mods = new \stdClass());
+            empty($this->ctx->mods) && ($this->ctx->mods = new Mods());
             $mods = $this->ctx->mods;
             $mods->$key = !key_exists($key, $mods) || $force ? $value : $mods->$key;
             return $this;
@@ -291,14 +308,16 @@ class Context {
      * @return array|Context
      */
     function mods ($values = null, $force = false) {
-        $mods = isset($this->ctx->mods) ? $this->ctx->mods : ($this->ctx->mods = new \stdClass());
+        $mods = $this->ctx->mods ?: ($this->ctx->mods = new Mods());
         if ($values === null) {
             return $mods;
         }
 
+        // d(compact('mods', 'values', 'force'));
         $this->ctx->mods = $force ?
-            $this->extend($mods, $values)
-            : $this->extend($values, $mods);
+            $this->extend($mods, $values) :
+            $this->extend(is_object($values) ? $values : new Mods($values), $mods);
+        // d('res', $this->ctx->mods, "\n", (array)($this->ctx->mods));
 
         return $this;
     }
@@ -346,22 +365,15 @@ class Context {
      */
     function mix ($mix = null, $force = false) {
         if ($mix === null) {
-            return isset($this->ctx->mix) ? (array)$this->ctx->mix : null;
+            return key_exists('mix', $this->ctx) ? $this->ctx->mix : null;
         }
 
-        if ($force) {
-            $this->ctx->mix = $mix;
+        if ($force || !key_exists('mix', $this->ctx)) {
+            $this->ctx->mix = JsonCollection::normalize($mix);
             return $this;
         }
 
-        if ($this->ctx->mix) {
-            // d($this->ctx->mix);
-            $this->ctx->mix = is_array($this->ctx->mix) ?
-                array_merge($this->ctx->mix, (array)$mix) :
-                array_merge([$this->ctx->mix], (array)$mix);
-        } else {
-            $this->ctx->mix = $mix;
-        }
+        $this->ctx->mix->append($mix);
 
         return $this;
     }
@@ -375,12 +387,12 @@ class Context {
      * @return string|null|Context
      */
     function attr ($key, $value = null, $force = false) {
-        $attrs = key_exists('attrs', $this->ctx) ? $this->ctx->attrs : ($this->ctx->attrs = new \stdClass());
-        if ($value === null) {
-            return isset($attrs->$key) ? $attrs->$key : null;
+        $attrs = $this->ctx->attrs ?: ($this->ctx->attrs = []);
+        if (func_num_args() === 1) {
+            return isset($attrs[$key]) ? $attrs[$key] : null;
         }
 
-        $attrs->$key = empty($attrs->$key) || $force ? $value : $attrs->$key;
+        $this->ctx->attrs[$key] = !array_key_exists($key, $attrs) || $force ? $value : $attrs[$key];
 
         return $this;
     }
@@ -400,13 +412,14 @@ class Context {
      * @param boolean [$force]
      * @return {Object|Context
      */
-    function attrs ($values = null, $force = false) {
-        $attrs = $this->ctx->attrs || [];
+    function attrs (array $values = null, $force = false) {
+        $attrs = $this->ctx->attrs ?: [];
         if ($values === null) {
             return $attrs;
         }
 
-        $this->ctx->attrs = $force ? $this->extend($attrs, $values) : $this->extend($values, $attrs);
+        $attrs = (array)$attrs;
+        $this->ctx->attrs = $force ? $values + $attrs : $attrs + $values;
 
         return $this;
     }
@@ -448,13 +461,16 @@ class Context {
      * @return boolean|Object|Context
      */
     function js ($js = null, $force = false) {
-        if ($js === null) {
-            return isset($this->ctx->js) ? $this->ctx->js : null;
+        if (func_num_args() === 0) {
+            return key_exists('js', $this->ctx) ? $this->ctx->js : null;
         }
 
-        $this->ctx->js = $force ?
+        // this.ctx.js = force ?
+        //     (js === true ? {} : js) :
+        //     js ? this.extend(this.ctx.js, js) : this.ctx.js;
+        $this->ctx->js = !key_exists('js', $this->ctx) || $force ?
             ($js === true ? [] : $js) :
-            $js ? $this->extend($this->ctx->js, $js) : $this->ctx->js;
+            ($this->ctx->js + ($js ?: []));
 
         return $this;
     }
@@ -497,12 +513,14 @@ class Context {
      * @return Context|mixed
      */
     function param ($key, $value = null, $force = false) {
-        if ($value === null) {
-            return isset($this->ctx->$key) ? $this->ctx->$key : null;
+        // get
+        if (func_num_args() === 1) {
+            return key_exists($key, $this->ctx) ? $this->ctx->$key : null;
         }
-
-        $this->ctx->$key = empty($this->ctx->$key) || $force ? $value : $this->ctx->$key;
-
+        // set
+        if (!key_exists($key, $this->ctx) || $force) {
+            $this->ctx->$key = $value;
+        }
         return $this;
     }
 
@@ -520,10 +538,12 @@ class Context {
      */
     function content ($value = null, $force = false) {
         if (func_num_args() === 0) {
-            return isset($this->ctx->content) ? $this->ctx->content : null;
+            return !is_null($this->ctx->content) ? $this->ctx->content : null;
         }
 
-        $this->ctx->content = empty($this->ctx->content) || $force ? $value : $this->ctx->content;
+        if (is_null($this->ctx->content) || $force) {
+            $this->ctx->setContent($value);
+        }
 
         return $this;
     }
@@ -542,10 +562,10 @@ class Context {
      */
     function html ($value = null, $force = false) {
         if (func_num_args() === 0) {
-            return isset($this->ctx->html) ? $this->ctx->html : null;
+            return key_exists('html', $this->ctx) ? $this->ctx->html : null;
         }
 
-        $this->ctx->html = empty($this->ctx->html) || $force ? $value : $this->ctx->html;
+        $this->ctx->html = !key_exists('html', $this->ctx) || $force ? $value : $this->ctx->html;
 
         return $this;
     }

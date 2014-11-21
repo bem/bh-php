@@ -10,11 +10,11 @@ class isSimpleTest extends PHPUnit_Framework_TestCase {
      */
     function setupBhInstance () {
         $this->bh = new BH();
-        $this->ctx = new Context();
+        $this->ctx = new Context($this->bh);
     }
 
     function test_it_should_return_true_for_nothing () {
-        $this->assertTrue($this->ctx->isSimple());
+        $this->assertTrue($this->ctx->isSimple(true));
     }
 
     function test_it_should_return_true_for_null () {
@@ -38,7 +38,7 @@ class isSimpleTest extends PHPUnit_Framework_TestCase {
     }
 
     function test_it_should_return_false_for_object () {
-        $this->assertFalse($this->ctx->isSimple(new stdObject()));
+        $this->assertFalse($this->ctx->isSimple((object)[]));
     }
 
 }

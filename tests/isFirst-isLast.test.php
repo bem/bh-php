@@ -11,7 +11,7 @@ class isFirstLastTest extends PHPUnit_Framework_TestCase {
         $this->bh = new BH();
     }
 
-    function test_it_should_calc_isFirst_isLast___ () {
+    function test_it_should_calc_isFirst_isLast () {
         $this->bh->match('button__inner', function ($ctx) {
             if ($ctx->isFirst()) {
                 $ctx->mod('first', 'yes');
@@ -73,7 +73,7 @@ class isFirstLastTest extends PHPUnit_Framework_TestCase {
         );
     }
 
-    function test_it_should_ignore_empty_array_items__ () {
+    function test_it_should_ignore_empty_array_items () {
         $this->bh->match('button', function ($ctx) {
             if ($ctx->isFirst()) {
                 $ctx->mod('first', 'yes');
@@ -84,23 +84,21 @@ class isFirstLastTest extends PHPUnit_Framework_TestCase {
         });
         $this->assertEquals(
             '<div class="button button_first_yes"></div>' .
-            '<div>' .
-            '<div class="button button_first_yes"></div>' .
-            '<div class="button"></div>' .
-            '<div class="button button_last_yes"></div>' .
+                '<div>' .
+                '<div class="button button_first_yes"></div>' .
+                '<div class="button"></div>' .
+                '<div class="button button_last_yes"></div>' .
             '</div>',
             $this->bh->apply([
                 false,
                 ['block' => 'button'],
-                [
-                    'content' => [
-                        false,
-                        ['block' => 'button'],
-                        ['block' => 'button'],
-                        ['block' => 'button'],
-                        [null]
-                    ]
-                ],
+                ['content' => [
+                    false,
+                    ['block' => 'button'],
+                    ['block' => 'button'],
+                    ['block' => 'button'],
+                    [null]
+                ]],
                 null
             ])
         );

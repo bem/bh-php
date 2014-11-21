@@ -16,7 +16,7 @@ class extendTest extends PHPUnit_Framework_TestCase {
         $this->bh->match('button', function ($ctx) {
             $this->assertEquals(
                 'bar',
-                $ctx->extend(null, ['foo' => 'bar'])->foo
+                $ctx->extend(null, ['foo' => 'bar'])['foo']
             );
         });
         $this->bh->apply(['block' => 'button']);
@@ -26,7 +26,7 @@ class extendTest extends PHPUnit_Framework_TestCase {
         $this->bh->match('button', function ($ctx) {
             $this->assertEquals(
                 'foo',
-                $ctx->extend(['foo' => 'bar'], ['foo' => 'foo'])->foo
+                $ctx->extend(['foo' => 'bar'], ['foo' => 'foo'])['foo']
             );
         });
         $this->bh->apply(['block' => 'button']);

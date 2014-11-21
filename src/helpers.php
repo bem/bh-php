@@ -19,11 +19,15 @@ function isList ($array) {
 
     // empty and arrays with only 0 key are lists
     if ($l <= 1) {
-        return $l === 1 ? isset($array[0]) : true;
+        return $l === 1 ? array_key_exists(0, $array) : true;
     }
 
     // array with last and inner keys are exists
-    return isset($array[$l - 1]) && ($l <= 2 || isset($array[$l >> 1]));
+    return array_key_exists($l - 1, $array) && ($l <= 2 || array_key_exists($l >> 1, $array));
+}
+
+function isArrayLike ($a) {
+    return (is_array($a) || ($a instanceof \ArrayObject)) && array_key_exists(0, $a);
 }
 
 //function isListLike($o) {

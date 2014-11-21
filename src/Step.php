@@ -2,15 +2,16 @@
 
 namespace BEM;
 
-class Node {
+class Step {
 
     public $json;
     public $arr;
-    public $index;
     public $blockName;
     public $blockMods;
     public $parentNode;
+    public $index;
     public $position;
+    public $tParams = [];
 
     /**
      * @param array $node lib
@@ -24,4 +25,7 @@ class Node {
         }
     }
 
+    public function __set ($name, $value) {
+        throw new \Exception("Cannot add new property \$$name to instance of " . __CLASS__);
+    }
 }

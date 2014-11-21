@@ -1,27 +1,33 @@
 <?php
 
-use BEM\BH;
+use BEM\BH, BEM\JsonCollection, BEM\Json;
 
-class mix extends PHPUnit_Framework_TestCase {
+class mixTest extends PHPUnit_Framework_TestCase {
 
     /**
      * @before
      */
     function setupBhInstance () {
         $this->bh = new BH();
+        $this->blockMix = [['block' => 'mix']];
+        $this->blockMixJson = new JsonCollection([
+            new Json($this->blockMix[0])
+        ]);
     }
 
     function test_it_should_return_mix () {
-        $mix = [['block' => 'mix']];
-        $this->bh->match('button', function ($ctx) use ($mix) {
-            $this->assertEquals($ctx->mix(), $mix);
+        $this->bh->match('button', function ($ctx) {
+            $this->assertEquals(
+                $this->blockMixJson,
+                $ctx->mix()
+            );
         });
-        $this->bh->apply(['block' => 'button', 'mix' => $mix]);
+        $this->bh->apply(['block' => 'button', 'mix' => $this->blockMix]);
     }
 
     function test_it_should_set_mix () {
         $this->bh->match('button', function ($ctx) {
-            $ctx->mix([['block' => 'mix']]);
+            $ctx->mix($this->blockMix);
         });
         $this->assertEquals(
             '<div class="button mix"></div>',

@@ -1,7 +1,6 @@
 <?php
 
 use BEM\BH;
-define('undefined', '__halt_compiler__');
 
 class bhMatchTest extends PHPUnit_Framework_TestCase {
 
@@ -163,7 +162,7 @@ class bhMatchTest extends PHPUnit_Framework_TestCase {
         );
     }
 
-    function test_it_should_properly_match_elem_mods__ () {
+    function test_it_should_properly_match_elem_mods () {
         $this->bh->match('button', function ($ctx) {
             $ctx->content(['elem' => 'control']);
         });

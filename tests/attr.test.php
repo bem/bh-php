@@ -13,16 +13,16 @@ class attrTest extends PHPUnit_Framework_TestCase {
 
     function test_it_should_return_attr () {
         $this->bh->match('button', function ($ctx) {
-            $this->assertEquals($ctx->attr('type'), 'button');
+            $this->assertEquals('button', $ctx->attr('type'));
         });
         $this->bh->apply(['block' => 'button', 'attrs' => ['type' =>'button']]);
     }
 
     function test_it_should_return_null_attr () {
         $this->bh->match('button', function ($ctx) {
-            $this->assertEquals($ctx->attr('type'), null);
+            $this->assertNull($ctx->attr('type'));
         });
-        $this->bh->apply(['block' => 'button', 'attrs' => ['disabled' =>'disabled']]);
+        $this->bh->apply(['block' => 'button', 'attrs' => ['disabled' => 'disabled']]);
     }
 
     function test_it_should_set_attr () {
@@ -32,7 +32,10 @@ class attrTest extends PHPUnit_Framework_TestCase {
             $ctx->attr('disabled', false);
             $ctx->attr('value', null);
         });
-        $this->assertEquals($this->bh->apply(['block' => 'checkbox']), '<div class="checkbox" type="button" disabled="false"></div>');
+        $this->assertEquals(
+            '<div class="checkbox" type="button" disabled="false"></div>',
+            $this->bh->apply(['block' => 'checkbox'])
+        );
     }
 
     function test_it_should_not_override_user_attr () {
@@ -41,14 +44,15 @@ class attrTest extends PHPUnit_Framework_TestCase {
             $ctx->attr('disabled', true);
         });
         $this->assertEquals(
+            '<div class="button" type="link"></div>',
             $this->bh->apply([
                 'block' =>'button',
                 'attrs' => [
                     'type' => 'link',
                     'disabled' => null
                 ]
-            ]),
-            '<div class="button" type="link"></div>');
+            ])
+        );
     }
 
     function test_it_should_not_override_later_declarations () {
@@ -58,7 +62,7 @@ class attrTest extends PHPUnit_Framework_TestCase {
         $this->bh->match('button', function ($ctx) {
             $ctx->attr('type', 'button');
         });
-        $this->assertEquals($this->bh->apply(['block' => 'button']), '<div class="button" type="button"></div>');
+        $this->assertEquals('<div class="button" type="button"></div>', $this->bh->apply(['block' => 'button']));
     }
 
     function test_it_should_override_later_declarations_with_force_flag () {
@@ -68,7 +72,7 @@ class attrTest extends PHPUnit_Framework_TestCase {
         $this->bh->match('button', function ($ctx) {
             $ctx->attr('type', 'button');
         });
-        $this->assertEquals($this->bh->apply(['block' => 'button']), '<div class="button" type="control"></div>');
+        $this->assertEquals('<div class="button" type="control"></div>', $this->bh->apply(['block' => 'button']));
     }
 
     function test_it_should_override_user_declarations_with_force_flag () {
@@ -77,12 +81,14 @@ class attrTest extends PHPUnit_Framework_TestCase {
             $ctx->attr('disabled', null, true);
         });
         $this->assertEquals(
+            '<div class="button" type="button"></div>',
             $this->bh->apply([
                 'block' =>'button',
                 'attrs' => [
                     'type' =>'link',
                     'disabled' =>'disabled'
                 ]
-            ]), '<div class="button" type="button"></div>');
+            ])
+        );
     }
 }
