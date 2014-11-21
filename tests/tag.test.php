@@ -11,7 +11,7 @@ class tagTest extends PHPUnit_Framework_TestCase {
         $this->bh = new BH();
     }
 
-    /*function test_it_should_return_html_tag () {
+    function test_it_should_return_html_tag () {
         $this->bh->match('button', function ($ctx) {
             $this->assertEquals(
                 'button',
@@ -20,7 +20,7 @@ class tagTest extends PHPUnit_Framework_TestCase {
         });
         $this->bh->apply(['block' => 'button', 'tag' => 'button']);
     }
-*/
+
     function test_it_should_set_empty_tag () {
         $this->bh->match('link', function ($ctx) {
             $ctx->tag('');

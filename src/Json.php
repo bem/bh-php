@@ -62,6 +62,10 @@ class Json {
             : JsonCollection::normalize($content);
     }
 
+    public function __get ($name) {
+        return null;
+    }
+
     /*public function __set ($name, $value) {
         $this->$name = $value;
         // throw new \Exception("Cannot add new property \$$name to instance of " . __CLASS__);
