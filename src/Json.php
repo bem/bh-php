@@ -27,7 +27,7 @@ class Json {
     public $attrs;
 
     public $_stop = false;
-    public $__funcs = [];
+    public $__m = [];
 
     /**
      * Constructor
@@ -64,18 +64,6 @@ class Json {
 
     public function __get ($name) {
         return null;
-    }
-
-    /*public function __set ($name, $value) {
-        $this->$name = $value;
-        // throw new \Exception("Cannot add new property \$$name to instance of " . __CLASS__);
-    }
-
-    /*public function __get ($name) {
-        if (substr($name, 0, 6) === '__func') {
-            return isset($this->_funcs[$name]) ? $this->_funcs[$name] : null;
-        }
-        // throw new \Exception("Cannot find property \$$name on instance of " . __CLASS__);
     }
 
 /*

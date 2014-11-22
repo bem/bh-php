@@ -220,42 +220,42 @@ class BH {
      */
     function buildMatcher () {
         $res = [];
-        $vars = ['$bh = $this'];
+        $vars = []; //'$bh = $this'];
         $allMatchers = $this->_matchers;
         $declarations = [];
         // Matchers->iterate
         for ($i = sizeof($allMatchers) - 1; $i >= 0; $i--) {
             $matcherInfo = $allMatchers[$i];
             $expr = $matcherInfo['expr'];
-            $vars[] = '$_m' . $i . ' = $ms[' . $i . ']["fn"]';
+            //$vars[] = '$_m' . $i . ' = $ms[' . $i . ']["fn"]';
             $decl = ['fn' => $matcherInfo['fn'], '__id' => $matcherInfo['__id'], 'index' => $i]
                 + static::parseBemCssClasses($matcherInfo['expr']);
             $declarations[] = $decl;
         }
 
-        $declByBlock = static::groupBy($declarations, 'block');
         $res[] = 'return function ($ctx, $json) use ($ms) {'; // ?
-        $res[] = join(";\n", $vars) . ';';
+        // $res[] = join(";\n", $vars) . ';';
 
-        $res[] = ('switch ($json->block ?: __undefined) { /*block*/');
+        $res[] = ('$b = $json->block ?: __undefined;');
+        $res[] = ('$e = $json->elem ?: __undefined;');
+        // $res[] = ('switch ($b) { /*block*/');
+        $bElse = '';
+        $declByBlock = static::groupBy($declarations, 'block');
         foreach ($declByBlock as $blockName => $blockData) {
-            $res[] = ('case "' . static::strEscape($blockName) . '":');
+            $res[] = ($bElse . 'if ($b === "' . static::strEscape($blockName) . '") {');
+            $bElse = 'else';
+
+            $eElse = '';
             $declsByElem = static::groupBy($blockData, 'elem');
-
-            //$res[] = ('\\BEM\\d($json);');
-
-            $res[] = ('  switch ($json->elem ?: __undefined) { /*elem*/');
             foreach ($declsByElem as $elemName => $decls) {
-                if ($elemName === __undefined) {
-                    $res[] = ('  case __undefined:');
-                } else {
-                    $res[] = ('  case "' . static::strEscape($elemName) . '":');
-                }
-                for ($j = 0, $l = sizeof($decls); $j < $l; $j++) {
-                    $decl = $decls[$j];
+                $elemCase = $elemName === __undefined ? '__undefined' : '"' . static::strEscape($elemName) . '"';
+                $res[] = '  ' . $eElse . 'if ($e === ' . $elemCase . ') {';
+
+                $eElse = 'else';
+                foreach ($decls as $decl) {
                     $__id = $decl['__id'];
                     $conds = [];
-                    $conds[] = ('!isset($json->__funcs[' . $__id . '])');
+                    $conds[] = ('!isset($json->__m[' . $__id . '])');
                     if (isset($decl['elemMod'])) {
                         $modKey = static::strEscape($decl['elemMod']);
                         $conds[] = (
@@ -270,19 +270,17 @@ class BH {
                     }
 
                     $res[] = ('    if (' . join(' && ', $conds) . ') {');
-                    $res[] = ('      $json->__funcs[' . $__id . '] = true;');
-                    $res[] = ('      $subRes = $_m' . $decl['index'] . '($ctx, $json);');
+                    $res[] = ('      $json->__m[' . $__id . '] = true;');
+                    $res[] = ('      $subRes = $ms[' . $decl['index'] . ']["fn"]($ctx, $json);');
                     $res[] = ('      if ($subRes !== null) { return ($subRes ?: ""); }');
                     $res[] = ('      if ($json->_stop) return;');
                     $res[] = ('    }');
                 }
-                $res[] = ('return;');
+
+                $res[] = ('  }');
             }
             $res[] = ('}');
-
-            $res[] = ('return;');
         }
-        $res[] = ('}');
         $res[] = ('};');
         $res = "<?php\nreturn function (\$ms) {\n" . join("\n", $res) . "\n};";
         file_put_contents("./tmp/bh-matcher.php", $res); // debugging purposes only (!!!)
