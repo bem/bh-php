@@ -3,303 +3,367 @@
 namespace BEM;
 
 /**
- * json decoder & encoder
- *
- * wrapper for json_encode/decode functions.
- * have a json parser for non-standart js
- *
- * @version     0.1
- * @author  alex 'alex_ez' yaroshevich <qfox@ya.ru>
- * @date    20 oct 2008
- * @todo    optimization, change parsing algorithms
- *
+ * json-like format reader
  */
 
 class WeakJsonParser {
 
-    /**
-     * @param $a
-     * @return string
-     */
-    public static function encode($a) {
-        if (is_callable('json_encode')) {
-            return json_encode($a);
+    // const CONTEXT_ROOT = 0x01;
+    // const CONTEXT_OBJECT = 0x02;
+    // const CONTEXT_ARRAY = 0x03;
+
+    // protected $ctx;
+    // protected $ctxs;
+
+    protected $s;
+    protected $pos;
+    protected $len;
+
+    public function parse ($s) {
+        $this->s = $s;
+        $this->pos = 0;
+        $this->len = strlen($s);
+        // $this->ctxs = [];
+
+        $res = $this->parseValue();
+        $this->skipWs();
+        if ($this->pos < $this->len) {
+            $this->err('Inconsistent content');
         }
 
-        switch (true) {
-            case is_null($a):
-                return 'null';
-            default:
-                $a = (string)($a);
-            case is_string($a):
-                return '"'.addslashes($a).'"';
-            case ctype_digit($a):
-                return (string)$a;
-            case is_numeric($a):
-                return (string)floatval($a);
-            case is_bool($a):
-                return $a ? 'true' : 'false';
-            case is_resource($a):
-                return '\"resource\"';
-            case is_array($a) && isset($a[0]) && isset($a[count($a)-1]): // listy
-                $r = array();
-                foreach ($a as $v) {
-                    $r[] = static::encode($v);
+        return $res;
+    }
+
+    protected function parseValue () {
+        $res = null;
+
+        $this->skipWs();
+        if ($this->pos >= $this->len) {
+            return $res;
+        }
+
+        $ch = $this->s[$this->pos];
+
+        // signed
+        if ($ch === '-' || $ch === '+') {
+            $this->pos++;
+            $res = $this->parseValue();
+            if ($res === null) {
+                $this->err('Invalid signed expression');
+            }
+            $res = ($ch === '-' ? -1 : 1) * $res;
+        }
+
+        // hexadigits
+        elseif ($ch === '0' && $this->pos + 1 < $this->len && $this->s[$this->pos + 1] === 'x') {
+            $res = $this->parseHexanumeric();
+        }
+
+        // digits
+        elseif (ctype_digit($ch) || $ch === '.') {
+            $res = $this->parseNumeric();
+        }
+
+        // quotes
+        elseif ($ch === '"' || $ch === "'") {
+            $res = $this->parseQuotedString();
+        }
+
+        // objects
+        elseif ($ch === '{') {
+            $res = [];
+            // $this->ctx(self::CONTEXT_OBJECT);
+            $start = $this->pos;
+            $this->pos++;
+            $this->skipWs();
+            $ch = $this->ch();
+            while ($ch !== '}' && $this->pos < $this->len) {
+                $key = $this->parseKey();
+                if ($this->skipColon() !== 1) {
+                    $this->err('Syntax error, expect one `:`');
                 }
-                return '['.join(',', $r).']';
-            case is_array($a) || is_object($a):
-                $r = array();
-                foreach ($a as $k => $v) {
-                    $r[] = static::encode($k).':'.static::encode($v);
+                $value = $this->parseValue();
+                $commas = $this->skipCommas();
+                if ($commas > 1) {
+                    $this->err('Syntax error, too many commas `,`');
                 }
-                return '{'.join(',', $r).'}';
-        }
-    }
-
-    /**
-     * @test ["{qwe:'asd'}"] >>> {"qwe":"asd"}
-     * @param string $s
-     * @return array|string|float|int|null
-     */
-    public static function decode ($s) {
-        if (!is_string($s)) {
-            return null;
-        }
-
-        $s = trim($s);
-        if (is_callable('json_decode')) {
-            $_r = json_decode($s, 1);
-            if (!is_null($_r)) {
-                return $_r;
+                //$this->d(compact('key', 'value', 'commas'));
+                $res[$key] = $value;
+                $ch = $this->ch(); //$this->s[$this->pos];
             }
-        }
-
-        if (!is_null($_r = self::parseScalar($s))) {
-            return $_r;
-        }
-
-        $ch = mb_substr($s, 0, 1);
-        switch (true) {
-            case $s === 'null' || $s === 'undefined':
-                $_r = null;
-                break;
-            case $ch === '[':
-                $_sub = mb_substr($s, 0);
-                $_end = self::findEnd($_sub);
-                $_sub = mb_substr($_sub, 1, $_end-2);
-                $_r = self::parseArray($_sub);
-                break;
-            case $ch === '{':
-                $_sub = mb_substr($s, 0);
-                $_end = self::findEnd($_sub);
-                $_sub = mb_substr($_sub, 1, $_end-2);
-                $_r = self::parseObject(trim($_sub));
-                break;
-            default:
-                $_r = $s;
-        }
-        // end of parser
-
-        return $_r;
-    }
-
-    /**
-     *
-     * @param string $s
-     * @return string|float|int|null
-     */
-    static function parseScalar($s) {
-        $s = trim($s);
-        $r = null;
-        switch (true) {
-            case $s === 'null' || $s === 'undefined':
-                break;
-            case ctype_digit($s):
-                $r = intval($s);
-                break;
-            case is_numeric($s):
-                $r = floatval($s);
-                break;
-            case $r = self::parseString($s):
-                break;
-            default:
-        }
-        return $r;
-    }
-
-    /**
-     * @test [" 'asd' "] >>> "asd" --- single quotes
-     * @test [" \"zxc\" "] >>> "zxc" --- double quotes
-     * @test ["''"] >>> "" --- empty single quoted
-     * @test ["\"\""] >>> "" --- empty double quoted
-     * @test ["'\\\"\\''"] >>> "\"'" --- single quoted escaped double and single quotes
-     * @test ["_a1s_d"] >>> "_a1s_d" --- unquoted string "_a1s_d"
-     * @param string $s
-     * @return string|null
-     */
-    static function parseString($s) {
-        $s = trim($s);
-        $sl = mb_strlen($s);
-        $r = null;
-        // parse simple key string
-        if ($s[0] === $s[$sl-1] && ($s[0] === '"' || $s[0] === "'")) {
-            $r = stripslashes(mb_substr($s, 1, -1));
-        } else {
-            $t = (mb_strpos($s, '_') === false)? $s : strtr($s, '_', 'a');
-            if (ctype_alpha($t[0]) && ctype_alnum($t)) {
-                $r = $s;
+            if ($ch !== '}') {
+                $this->err('Unclosed brace `{`');
             }
+            $this->pos++;
+            // $this->ctx();
         }
-        return $r;
-    }
-
-    static function parseObject($s) {
-        $r = array();
-        $s = trim($s);
-        for ($l = mb_strlen($s), $i=0; $i < $l; $i++) {
-            // skip delimiter and spaces
-            $ch = mb_substr($s, $i, 1);
-            if ($ch === ',') {
-                is_null($k) ? $r[] = null : $r[$_k] = null;
-                continue;
-            }
-            if (trim($ch) === '') {
-                continue;
-            }
-
-            $_sub = mb_substr($s, $i);
-            $_end = self::findEnd($_sub);
-            $_k = self::parseString(mb_substr($s, $i, $_end));
-
-            $i += $_end;
-
-            while (mb_substr($s, $i - 1, 1) != ':' && $i < $l) {
-                $i++;
-            }
-
-            $_sub = mb_substr($s, $i);
-            $_end = self::findEnd($_sub);
-            $_v = mb_substr($s, $i, $_end);
-            $i += $_end;
-
-            $r[$_k] = static::decode($_v);
-            $_k = null;
+        elseif ($ch === '}') {
+            // if ($this->ctx !== self::CONTEXT_OBJECT) $this->err('Unpaired brace `}`');
+            $this->err('Unexpected `}`');
         }
-        return $r;
-    }
-
-    static function parseArray($s) {
-        $r = array();
-        $s = trim($s);
-        for ($l = mb_strlen($s), $i = 0; $i < $l; $i++) {
-            // skip delimiter and spaces
-            $ch = mb_substr($s, $i, 1);
-            if ($ch === ',') {
-                $r[] = null;
-                continue;
+        elseif ($ch === '[') {
+            // $this->ctx(self::CONTEXT_ARRAY);
+            $start = $this->pos;
+            $this->pos++;
+            $this->skipWs();
+            $ch = $this->ch();
+            if ($ch !== ']' && $this->pos + 1 >= $this->len) {
+                $this->err('Unclosed bracket `[`');
             }
-            if (trim($ch) === '') {
-                continue;
-            }
-
-            $_sub = mb_substr($s, $i);
-            $_end = self::findEnd($_sub);
-
-            $_v = mb_substr($s, $i, $_end);
-
-            $r[] = static::decode(trim($_v));
-
-            $i += $_end;
-        }
-
-        return $r;
-    }
-
-    /**
-     * find end of block
-     * @param string $s our string
-     * @param bool $sqm skip quote blocks mode
-     * @param string $sc stop character
-     */
-    static function findEnd($s, $sqm = false, $sc = null) {
-        $_s = $s; $s = ltrim($s);
-        $left = mb_strlen($_s) - mb_strlen($s);
-        $fc = mb_substr($s, 0, 1);
-
-        if (!mb_strlen($s)) {
-            return $left;
-        }
-
-        // fetch closing character, if need
-        $_fc2sc = array('"'=>'"', "'"=>"'", '{'=>'}', '['=>']', '('=>')', '<'=>'>');
-        if (is_null($sc)) {
-            $sc = isset($_fc2sc[$fc])? $_fc2sc[$fc] : null; // stop character
-            $sqm = $sqm || ('"' === $sc || "'" === $sc);
-            $sc || $sc = ",:";
-        }
-
-        $parenthesis = (isset($_fc2sc[$sc]) || in_array($sc, $_fc2sc));
-
-        // parenthesis validation.
-        $sq = ('"' === $fc || "'" === $fc) ? $fc : false;
-        $cc = $fc;
-
-        // pc - previous, cc - current character
-        for ($l = mb_strlen($s), $j = 1, $p = 1; $p && $j < $l; $j++) {
-            $pc = $cc;
-            $cc = mb_substr($s, $j, 1);
-
-            if (!$sqm && ('"' === $cc || "'" === $cc))  {
-                $_nos = ($pc !== "\\"); // no open slash
-                if (!$_nos) {
-                    for ($_j = $j; $_j > 1; $_j--) {
-                        if (mb_substr($s, $_j-1, 1) != "\\") {
-                            break;
-                        }
-                        $_nos = ($j - $_j + 1) % 2;
+            $res = [];
+            $k = 0;
+            while ($ch !== ']' && $this->pos < $this->len) {
+                $res[$k] = $this->parseValue();
+                $commas = $this->skipCommas();
+                if ($commas > 1) {
+                    foreach (range(1, $commas - 1) as $i) {
+                        $res[$k + $i] = null;
                     }
                 }
-                if ($_nos && $sq === false) {
-                    $sq = $cc;
-                } elseif ($_nos && $sq == $cc) {
-                    $sq = false;
-                }
-
-            } elseif ($sqm) {
-                $_nos = ($pc !== "\\"); // no open backslash
-                if (!$_nos) {
-                    for ($_j = $j; $_j > 1; $_j--) {
-                        if (mb_substr($s, $_j-1,1) != "\\") {
-                            break;
-                        }
-                        $_nos = ($j - $_j + 1) % 2;
-                    }
-                }
-                if (!$_nos) {
-                    continue;
-                }
+                $k += $commas;
+                $ch = $this->ch();
             }
-
-            if (!$parenthesis && $sq === false && mb_strpos($sc, $cc) !== false) {
-                $p = 0;
-            } elseif (!$sqm && $sq === false) {
-                $p += ($cc === $sc) ? (-1) : (($cc === $fc) ? 1 : 0);
-            } elseif ($sqm) {
-                $p -= ($cc === $sc);
+            if ($ch !== ']') {
+                $this->err('Expected bracket `]`');
             }
-            //echo "\ti: ".($sq?'-':'')."$j\tpp: $pp, p: $p, pc: $pc, cc: $cc,\tsq: $sq, cc=': ".('"' === $cc || "'" === $cc) .", pc!=\\: ".($pc != "\\")."\n";
+            $this->pos++;
+            // $this->ctx();
+        }
+        elseif ($ch === ']') {
+            // if ($this->ctx() !== self::CONTEXT_ARRAY) $this->err('Unpaired bracket `]`');
+            $this->err('Unexpected `]`');
+        }
+        // keywords
+        elseif ($ch === 't') {
+            $this->parseExactKey('true', 4);
+            $res = true;
+        }
+        elseif ($ch === 'f') {
+            $this->parseExactKey('false', 5);
+            $res = false;
+        }
+        elseif ($ch === 'n') {
+            $this->parseExactKey('null', 4);
+            $res = null;
+        }
+        elseif ($ch === 'u') {
+            $this->parseExactKey('undefined', 9);
+            $res = null;
         }
 
-        if (!$parenthesis && mb_strpos($sc, $cc) !== false) {
-            $j--;
-        }
+        return $res;
+    }
 
-        // parenthesis parse error. errors with disclosed parenthesis
-        if ($parenthesis && $p) {
-            // throw new Exception ?
-            trigger_error("disclosed parenthesis ".$fc."; s: ".$s."; pos: ".$j."\n");
+    protected function parseKey () {
+        $res = null;
+        $ch = $this->ch();
+        if ($ch === '"' || $ch === "'") {
+            $res = $this->parseQuotedString();
         }
+        else {
+            $res = $ch;
+            while (ctype_alnum($ch = $this->nextCh()) || $ch === '_') {
+                $res .= $ch;
+            }
+        }
+        return $res;
+    }
 
-        return $j+$left;
+    protected function parseNumeric () {
+        $i = $this->pos;
+        $sp = false;
+        while ($i < $this->len) {
+            $ch = $this->s[$i];
+            if (!ctype_digit($ch) xor (!$sp && $ch === '.')) {
+                break;
+            }
+            $sp = $sp || $ch === '.';
+            $i++;
+        }
+        $res = substr($this->s, $this->pos, $i - $this->pos);
+        $this->pos = $i;
+        return $sp ? (float)$res : (int)$res;
+    }
+
+    protected function parseHexanumeric () {
+        $i = $this->pos + 2;
+        while ($i < $this->len) {
+            $ch = $this->s[$i];
+            if (!ctype_xdigit($ch)) {
+                break;
+            }
+            $i++;
+        }
+        $res = substr($this->s, $this->pos + 2, $i - $this->pos - 2);
+        $this->pos = $i;
+        return hexdec($res);
+    }
+
+    protected function parseQuotedString () {
+        $q = $this->ch();
+        $start = $this->pos;
+        $ch = $this->nextCh();
+        while ($this->pos < $this->len) {
+            if ($ch === $q) {
+                // done
+                break;
+            } elseif ($ch === '\\') {
+                $this->pos++;
+            }
+            $ch = $this->nextCh();
+        }
+        if ($ch !== $q) {
+            $this->err('Unpaired quote `' . $q . '`');
+        }
+        $res = substr($this->s, $start + 1, $this->pos - $start - 1);
+        $res = stripslashes($res); // check it please
+        $this->pos++;
+        return $res;
+    }
+
+    protected function parseExactKey ($s, $l = null) {
+        $res = null;
+        $l = $l ?: strlen($s);
+        if (substr($this->s, $this->pos, $l) === $s) {
+            $res = $s;
+        }
+        if ($this->pos + $l < $this->len) {
+            $nch = $this->s[$this->pos + $l];
+            if (ctype_alnum($nch) || $nch === '_') {
+                $res = null;
+            }
+        }
+        if ($res === null) {
+            $this->err('Unexpected keyword');
+        }
+        $this->pos += $l;
+        return $res;
+    }
+
+    protected function skipWs () {
+        while ($this->pos < $this->len) {
+            $ch = $this->s[$this->pos];
+            if (!ctype_space($ch)) {
+                break;
+            }
+            $this->pos++;
+        }
+    }
+
+    protected function skipColon () {
+        $res = 0;
+        while ($this->pos < $this->len) {
+            $ch = $this->s[$this->pos];
+            if (!ctype_space($ch) && $ch !== ':') {
+                break;
+            }
+            $res += $ch === ':';
+            $this->pos++;
+        }
+        return $res;
+    }
+
+    protected function skipCommas () {
+        $res = 0;
+        while ($this->pos < $this->len) {
+            $ch = $this->s[$this->pos];
+            if (!ctype_space($ch) && $ch !== ',') {
+                break;
+            }
+            $res += $ch === ',';
+            $this->pos++;
+        }
+        return $res;
+    }
+
+    protected function ch () {
+        return isset($this->s[$this->pos]) ? $this->s[$this->pos] : null;
+    }
+
+    protected function nextCh () {
+        $this->pos++;
+        if ($this->pos > $this->len) {
+            $this->pos = $this->len; //$this->err('Syntax error at ' . $this->loc());
+        }
+        return $this->ch();
+    }
+
+    protected function d () {
+        static $first = null;
+        if (!$first) $first = microtime(1);
+        $s = str_replace(array("\r", "\t", "\n", " "), '', $this->s);
+        $out = [sprintf("%.3fms", (microtime(1) - $first)*1000), $s, $this->ch(), $this->pos, $this->len];
+        call_user_func_array(__NAMESPACE__.'\\d', array_merge($out, func_get_args()));
+    }
+
+    /*
+    protected function ctx ($ctx = null) {
+        if ($ctx === null) {
+            if (empty($this->ctxs)) {
+                $this->err('Syntax error');
+            }
+            $this->ctx = array_pop($this->ctxs);
+            return $this->ctx;
+        }
+        $this->ctx = $ctx;
+        $this->ctxs[] = $ctx;
+    }
+    */
+
+    protected function err ($msg = null) {
+        $msg = $msg ?: 'Silent error';
+        throw new \Exception($msg . ' ' . $this->humanLoc());
+    }
+
+    protected function loc ($pos = null) {
+        return Location::build($this->s, $pos ?: $this->pos);
+    }
+
+    protected function humanLoc ($pos = null) {
+        $pos = $pos ?: $this->pos;
+        $loc = $this->loc($pos);
+        $nearlyStart = max(0, $loc->column - 15);
+        $nearly = mb_substr($loc->str, $nearlyStart, 25);
+        $pointerPos = $loc->column - $nearlyStart;
+        $linearr = ($pointerPos > 1 ? str_repeat('-', $pointerPos - 1) : '') . '^';
+        return 'at ' . $loc . "\n$nearly\n$linearr";
+    }
+}
+
+class Location {
+    public $line = 1;
+    public $column = 0;
+    public $str = '';
+    public function __construct ($line, $column, $lineStr) {
+        $this->line = $line;
+        $this->column = $column;
+        $this->str = $lineStr;
+    }
+    public function __toString() {
+        return 'line ' . $this->line . ' column ' . $this->column;
+    }
+
+    public static function build ($s, $pos) {
+        $line = 1;
+        $column = 0;
+        $i = 0; // line start
+        $len = strlen($s);
+        while ($i < $len) {
+            $j = strpos($s, "\n", $i);
+            if ($j === false) {
+                break;
+            }
+            if ($j >= $pos) {
+                break;
+            }
+            $i = $j + 1;
+            $line++;
+        }
+        $lineStr = $s;
+        if ($j !== false) { // not last line
+            $lineStr = substr($s, $i, $j - $i);
+        }
+        $column = mb_strlen(substr($lineStr, 0, $pos - $i + 1));
+        return new Location($line, $column, $lineStr);
     }
 }

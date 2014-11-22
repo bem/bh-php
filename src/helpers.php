@@ -7,7 +7,9 @@ if (!defined('__undefined')) {
 }
 
 function weakjson_decode($s) {
-    return WeakJsonParser::decode($s);
+    static $parser;
+    $parser = $parser ?: new WeakJsonParser();
+    return $parser->parse($s);
 }
 
 /**
