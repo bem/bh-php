@@ -311,10 +311,15 @@ class BH {
         // trying to parse
         if (is_scalar($bemJson)) {
             // string? like '{...}' || '[{...}]' || '([...])'
-            $bemJson = trim(trim(trim($bemJson), '()'));
+            if (!is_string($bemJson)) {
+                // return as is
+                return $bemJson;
+            }
+            $bemJson = trim($bemJson, "\n\t\r ()\x0B\0");
             $c = $bemJson[0];
             $l = $bemJson[strlen($bemJson) - 1];
             if ($c === '{' && $l === '}' || $c === '[' && $l === ']') {
+                // if it looks like json object - parse and process
                 return $this->processBemJson(weakjson_decode($bemJson));
             } else {
                 // return as is

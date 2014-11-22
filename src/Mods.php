@@ -17,4 +17,6 @@ class Mods {
         }
     }
 
+    public function __get ($k) {
+    }
 }
