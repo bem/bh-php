@@ -17,17 +17,17 @@ class Json {
     public $content;
 
     /** @var Mods */
-    public $mods;
+    protected $mods;
     /** @var Mods */
-    public $blockMods;
+    protected $blockMods;
     /** @var Mods */
-    public $elemMods;
+    protected $elemMods;
 
     /** @var array */
     public $attrs;
 
     public $_stop = false;
-    public $__funcs = [];
+    public $__m = [];
 
     /**
      * Constructor
@@ -38,7 +38,7 @@ class Json {
             $node = (array)($node);
         }
         elseif (!is_array($node)) {
-            throw new \Exception('Incorrect data for Context creation');
+            throw new \Exception('Incorrect data for Json creation');
         }
 
         $this->block    = isset($node['block']) ? $node['block'] : null;
@@ -63,19 +63,28 @@ class Json {
     }
 
     public function __get ($name) {
+        if ($name === 'mods' || $name === 'blockMods' || $name === 'elemMods') {
+            if (is_null($this->$name)) {
+                $this->$name = new Mods();
+            }
+            return $this->$name;
+        }
         return null;
     }
 
-    /*public function __set ($name, $value) {
-        $this->$name = $value;
-        // throw new \Exception("Cannot add new property \$$name to instance of " . __CLASS__);
+    public function __set ($name, $value) {
+        if ($name === 'mods' || $name === 'blockMods' || $name === 'elemMods') {
+            $this->$name = is_array($value) ? new Mods($value) : $value;
+        } else {
+            $this->$name = $value;
+        }
     }
 
-    /*public function __get ($name) {
-        if (substr($name, 0, 6) === '__func') {
-            return isset($this->_funcs[$name]) ? $this->_funcs[$name] : null;
+    public function __isset ($name) {
+        if ($name === 'mods' || $name === 'blockMods' || $name === 'elemMods') {
+            return !empty($this->$name);
         }
-        // throw new \Exception("Cannot find property \$$name on instance of " . __CLASS__);
+        return isset($this->$name);
     }
 
 /*

@@ -45,7 +45,7 @@ class JsonCollection extends \ArrayObject {
     public static function normalize ($bemJson) {
         switch (true) {
             // casual list
-            case is_array($bemJson) && isList($bemJson);
+            case isList($bemJson);
                 $bemJson = static::flattenList($bemJson);
             case $bemJson instanceof \Iterator:
                 $content = [];
@@ -113,21 +113,21 @@ class JsonCollection extends \ArrayObject {
      * @return array
      */
     public static function flattenList ($a) {
-        if (!isArrayLike($a)) {
+        if (!isList($a)) {
             return $a;
         }
 
         do {
             $flatten = false;
             for ($i = 0, $l = sizeof($a); $i < $l; $i++) {
-                if (isArrayLike($a[$i])) {
+                if (isList($a[$i])) {
                     $flatten = true;
                 }
             }
             if ($flatten) {
                 $res = [];
                 for ($i = 0; $i < $l; $i++) {
-                    if (!isArrayLike($a[$i])) {
+                    if (!isList($a[$i])) {
                         // filter empty arrays inside
                         if (!(is_array($a[$i]) && empty($a[$i]))) {
                             $res[] = $a[$i];

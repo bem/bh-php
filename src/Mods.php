@@ -18,5 +18,7 @@ class Mods {
     }
 
     public function __get ($k) {
+        // suppress notices in templates
     }
+
 }

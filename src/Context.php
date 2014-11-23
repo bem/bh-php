@@ -216,7 +216,7 @@ class Context {
         $node = $this->node;
         $json = $node->json;
 
-        if (!$json->elem && $json->mods) {
+        if (!$json->elem && isset($json->mods)) {
             $json->blockMods = $json->mods;
         }
 
@@ -282,13 +282,12 @@ class Context {
      */
     function mod ($key, $value = null, $force = false) {
         if (func_num_args() > 1) {
-            empty($this->ctx->mods) && ($this->ctx->mods = new Mods());
             $mods = $this->ctx->mods;
             $mods->$key = !key_exists($key, $mods) || $force ? $value : $mods->$key;
             return $this;
-        } else {
+        } elseif (isset($this->ctx->mods)) {
             $mods = $this->ctx->mods;
-            return $mods && isset($mods->$key) ? $mods->$key : null;
+            return key_exists($key, $mods) ? $mods->$key : null;
         }
     }
 
@@ -308,7 +307,7 @@ class Context {
      * @return array|Context
      */
     function mods ($values = null, $force = false) {
-        $mods = $this->ctx->mods ?: ($this->ctx->mods = new Mods());
+        $mods = $this->ctx->mods;
         if ($values === null) {
             return $mods;
         }
@@ -587,4 +586,24 @@ class Context {
         return $this->ctx;
     }
 
+    /**
+     * Конвертирует входной массив в Json или JsonCollection
+     * @param array $bemjson
+     * @return Json
+     */
+    function phpize ($bemjson) {
+        if (isList($bemjson)) {
+            return JsonCollection::normalize($bemJson);
+        }
+        return JsonCollection::normalizeItem($bemjson);
+    }
+
+    /**
+     * Array.isArray analogue
+     * @param mixed $ex
+     * @return boolean
+     */
+    function isArray ($ex) {
+        return isList($ex);
+    }
 }
