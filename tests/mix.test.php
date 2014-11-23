@@ -45,7 +45,7 @@ class mixTest extends PHPUnit_Framework_TestCase {
         );
     }
 
-    function test_it_should_extend_single_mix () {
+    function test_it_should_extend_user_single_mix () {
         $this->bh->match('button', function ($ctx) {
             $ctx->mix(['block' => 'mix2']);
         });

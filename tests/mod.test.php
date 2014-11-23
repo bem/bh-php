@@ -23,20 +23,14 @@ class modTest extends PHPUnit_Framework_TestCase {
 
     function test_it_should_return_null_mod () {
         $this->bh->match('button', function ($ctx) {
-            $this->assertEquals(
-                null,
-                $ctx->mod('type')
-            );
+            $this->assertNull($ctx->mod('type'));
         });
-        $this->bh->apply(['block' => 'button', 'mods' => ['disabled' => true]]);
+        $this->bh->apply(['block' => 'button']);
     }
 
     function test_it_should_return_boolean_mod () {
         $this->bh->match('button', function ($ctx) {
-            $this->assertEquals(
-                true,
-                $ctx->mod('disabled')
-            );
+            $this->assertTrue($ctx->mod('disabled'));
         });
         $this->bh->apply(['block' => 'button', 'mods' => ['disabled' => true]]);
     }

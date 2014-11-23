@@ -21,6 +21,16 @@ class tParamTest extends PHPUnit_Framework_TestCase {
         $this->bh->apply(['block' => 'button', 'content' => ['elem' => 'inner']]);
     }
 
+    function test_it_should_return_tParam_value_in_nested_block () {
+        $this->bh->match('button', function($ctx) {
+            $ctx->tParam('name', 'sample-name');
+        });
+        $this->bh->match('input', function($ctx) {
+            $this->assertEquals('sample-name', $ctx->tParam('name'));
+        });
+        $this->bh->apply([ 'block' => 'button', 'content' => [ 'block' => 'input' ] ]);
+    }
+
     function test_it_should_return_tParam_value_in_sub_nested_element () {
         $this->bh->match('button', function ($ctx) {
             $ctx->tParam('name', 'sample-name');

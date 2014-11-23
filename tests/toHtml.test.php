@@ -68,13 +68,13 @@ class bhToHtmlBemTest extends PHPUnit_Framework_TestCase {
         $this->bh = new BH();
     }
 
-    function test_it_should_not_set_class_if_not_be__m () {
+    function test_it_should_not_set_class_if_not_bem () {
         $this->assertEquals(
             '<div></div>',
             $this->bh->apply(['block' => 'button', 'bem' => false]));
     }
 
-    function test_it_should_not_set_js_if_not_be__m () {
+    function test_it_should_not_set_js_if_not_bem () {
         $this->assertEquals(
             '<div></div>',
             $this->bh->apply(['block' => 'button', 'js' => true, 'bem' => false]));
@@ -252,6 +252,10 @@ class bhToHtmlMixTest extends PHPUnit_Framework_TestCase {
         );
     }
 
+    function test_should_not_set_elem_mix_on_empty_node () {
+        $this->assertEquals('<div></div>', $this->bh->apply([ 'mix' => [ 'elem' => 'button' ] ]));
+    }
+
     function test_it_should_set_elem_mix () {
         $this->bh->match('button', function ($ctx) {
             $ctx->mix(['elem' => 'mix']);
@@ -341,6 +345,21 @@ class bhToHtmlJsTest extends PHPUnit_Framework_TestCase {
             '<div class="icon button__control" onclick="return {&quot;button__control&quot;:{}}">submit</div>',
             $this->bh->apply([ 'block' => 'icon', 'content' => 'submit', 'mix' => [ 'block' => 'button', 'elem' => 'control', 'js' => true ]])
         );
+    }
+
+}
+
+class bhToHtmlClsTest extends PHPUnit_Framework_TestCase {
+
+    /**
+     * @before
+     */
+    function setupBhInstance () {
+        $this->bh = new BH();
+    }
+
+    function test_should_set_cls () {
+        $this->assertEquals('<div class="clearfix"></div>', $this->bh->apply([ 'cls' => 'clearfix' ]));
     }
 
 }

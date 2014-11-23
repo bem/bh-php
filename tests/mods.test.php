@@ -13,7 +13,9 @@ class mods extends PHPUnit_Framework_TestCase {
 
     function test_it_should_return_empty_mods () {
         $this->bh->match('button', function ($ctx) {
-            $this->assertTrue(is_object($ctx->mods())); // is_a BEM\Mods
+            $mods = $ctx->mods(); // is_a BEM\Mods
+            $this->assertInternalType('object', $mods);
+            $this->assertEmpty((array)$ctx->mods());
         });
         $this->bh->apply(['block' => 'button']);
     }

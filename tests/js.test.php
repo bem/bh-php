@@ -54,7 +54,7 @@ class jsTest extends PHPUnit_Framework_TestCase {
     }
 */
 
-    function test_it_should_not_override_user_js () {
+    function test_it_should_extend_user_js () {
         $this->bh->match('button', function ($ctx) {
             $ctx->js(['a' => 2]);
         });
@@ -77,13 +77,13 @@ class jsTest extends PHPUnit_Framework_TestCase {
     }
     function test_it_should_override_later_declarations_with_force_flag () {
         $this->bh->match('button', function ($ctx) {
-            $ctx->js(false, true);
+            $ctx->js(true, true);
         });
         $this->bh->match('button', function ($ctx) {
-            $ctx->js(true);
+            $ctx->js(false);
         });
         $this->assertEquals(
-            '<div class="button"></div>',
+            '<div class="button i-bem" onclick="return {&quot;button&quot;:{}}"></div>',
             $this->bh->apply(['block' => 'button'])
         );
     }

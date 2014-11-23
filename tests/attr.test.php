@@ -22,7 +22,7 @@ class attrTest extends PHPUnit_Framework_TestCase {
         $this->bh->match('button', function ($ctx) {
             $this->assertNull($ctx->attr('type'));
         });
-        $this->bh->apply(['block' => 'button', 'attrs' => ['disabled' => 'disabled']]);
+        $this->bh->apply(['block' => 'button']);
     }
 
     function test_it_should_set_attr () {

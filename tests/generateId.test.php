@@ -11,7 +11,7 @@ class generateIdTest extends PHPUnit_Framework_TestCase {
         $this->bh = new BH();
     }
 
-    function test_it_should_generate_different_ids___ () {
+    function test_it_should_generate_different_ids () {
         $this->bh->match('button', function ($ctx) {
             $this->assertNotEquals(
                 $ctx->generateId(),
