@@ -3,8 +3,8 @@
 [![Build Status](https://travis-ci.org/zxqfox/bh-php.svg?branch=master)](https://travis-ci.org/zxqfox/bh-php)
  [![Coverage Status](https://img.shields.io/coveralls/zxqfox/bh-php.svg)](https://coveralls.io/r/zxqfox/bh-php)
  [![Dependency Status](https://www.versioneye.com/user/projects/547248e89dcf6da712000ff5/badge.svg)](https://www.versioneye.com/user/projects/547248e89dcf6da712000ff5)
- [![Latest Stable Version](https://poser.pugx.org/zxqfox/bh/v/stable.svg)](https://packagist.org/packages/zxqfox/bh)
- [![Total Downloads](https://poser.pugx.org/zxqfox/bh/downloads.svg)](https://packagist.org/packages/zxqfox/bh)
+ [![Latest Stable Version](https://poser.pugx.org/bem/bh/v/stable.svg)](https://packagist.org/packages/bem/bh)
+ [![Total Downloads](https://poser.pugx.org/bem/bh/downloads.svg)](https://packagist.org/packages/bem/bh)
 
 BH is a processor that converts BEMJSON to HTML. Or in other words a template engine.
 
@@ -13,11 +13,11 @@ BH is a processor that converts BEMJSON to HTML. Or in other words a template en
 ### Via composer
 
 ```
-php composer.phar require zxqfox/bh
+php composer.phar require bem/bh
 ```
 or (if you have composer in your path)
 ```
-composer require zxqfox/bh
+composer require bem/bh
 ```
 
 ```php
@@ -56,7 +56,7 @@ BH files within a project have `.bh.php` suffix (for example, `page.bh.php`). Th
 
 ```php
 return function ($bh) {
-	$bh->match(/*...*/);
+    $bh->match(/*...*/);
     // ...
 };
 ```
@@ -112,10 +112,10 @@ $bh->match([/*string*/ $expression], function (\BEM\Context $ctx, \BEM\Json $jso
 
 // or...
 $bh->match(/*array*/ $matchers = [
-	"$expression" => function(\BEM\Context $ctx, \BEM\Json $json) {
-    	// ... actions
-	},
-	// ... more matchers
+    "$expression" => function(\BEM\Context $ctx, \BEM\Json $json) {
+        // ... actions
+    },
+    // ... more matchers
 ]);
 ```
 
