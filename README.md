@@ -3,10 +3,24 @@
 [![Build Status](https://travis-ci.org/zxqfox/bh-php.svg?branch=master)](https://travis-ci.org/zxqfox/bh-php)
  [![Coverage Status](https://img.shields.io/coveralls/zxqfox/bh-php.svg)](https://coveralls.io/r/zxqfox/bh-php)
  [![Dependency Status](https://www.versioneye.com/user/projects/547248e89dcf6da712000ff5/badge.svg)](https://www.versioneye.com/user/projects/547248e89dcf6da712000ff5)
- [![Latest Stable Version](https://poser.pugx.org/bem/bh/v/stable.svg)](https://packagist.org/packages/bem/bh)
+
+[![Latest Stable Version](https://poser.pugx.org/bem/bh/v/stable.svg)](https://packagist.org/packages/bem/bh)
  [![Total Downloads](https://poser.pugx.org/bem/bh/downloads.svg)](https://packagist.org/packages/bem/bh)
 
 BH is a processor that converts BEMJSON to HTML. Or in other words a template engine.
+
+## Table of Contents
+
+- [Intallation](#installation)
+- [Friendly Packages](#friendly-packages)
+- [Usage](#usage)
+- [Conversion](#conversion)
+
+## Friendly Packages
+
+- [Project Stub with BH.PHP tech](https://github.com/bem/project-stub/tree/php-bem-bh)
+- [BEM Core Library with BH.PHP templates](https://github.com/zxqfox/bem-core/tree/feature/php-bh-templates%40v2)
+- [BEM Components Library with BH.PHP templates](https://github.com/zxqfox/bem-components/tree/feature/php-bh-templates%40v2)
 
 ## Installation
 
@@ -32,6 +46,7 @@ $bh = new \BEM\BH();
 # via git
 git clone https://github.com/zxqfox/bh-php.git ./vendor/bh
 ```
+
 ```
 # via wget + tar
 wget https://github.com/zxqfox/bh-php/archive/master.tar.gz # download archive
@@ -50,7 +65,7 @@ $bh = new \BEM\BH();
 // ...
 ```
 
-### Usage
+## Usage
 
 BH files within a project have `.bh.php` suffix (for example, `page.bh.php`). The file is formed in CommonJS-like format:
 
@@ -61,11 +76,34 @@ return function ($bh) {
 };
 ```
 
-To load this format use this technique:
+To load this file format use include and run technique:
 ```php
+// Instantiate BH object
 $bh = new \BEM\BH();
-$fn = include('file.bh.php'); $fn($bh); // done. and nothing in global
+
+// Load and apply matchers to BH object in $bh
+$fn = include('file.bh.php');
+$fn($bh); // done. and nothing in global
+
 // ...
+```
+
+This allows you to have several instances at the moment:
+```
+$bh1 = new \BEM\BH();
+$bh2 = new \BEM\BH();
+
+// load matchers
+$indexMatchers = include('bundles/index/index.bh.php');
+$mergedMatchers = include('bundles/merged/merged.bh.php');
+
+// apply them
+$indexMatchers($bh1); // bh1 now contains matchers for index page only
+$mergedMatchers($bh2); // bh2 now contains all matchers
+
+// use it with the same bemjson data
+$bh1->apply($bemjson);
+$bh2->apply($bemjson);
 ```
 
 Use `apply` method to convert source tree of BEMJSON into an output HTML. Use `processBemJson` method to get an interim result in detailed BEMJSON tree form.
@@ -78,8 +116,12 @@ $bh = new \BEM\BH();
 $bh->match('button', function ($ctx) {
     $ctx->tag('button');
 });
-$bh->processBemJson([ 'block' => 'block' ]); // [ 'block' => 'button', 'mods' => new Mods(), 'tag' => 'button' ]
-$bh->apply([ 'block' => 'button' ]); // '<button class="button"></button>'
+
+$bh->processBemJson([ 'block' => 'block' ]);
+// [ 'block' => 'button', 'mods' => new Mods(), 'tag' => 'button' ]
+
+$bh->apply([ 'block' => 'button' ]);
+// '<button class="button"></button>'
 ```
 
 ## Conversion
