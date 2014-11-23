@@ -38,6 +38,9 @@ class jsTest extends PHPUnit_Framework_TestCase {
             $this->bh->apply(['block' => 'button'])
         );
     }
+
+/*
+    // Disabled according to https://github.com/bem/bh/commit/8540d585649ca50c98e7e4d8179f73ea0652e2ac
     function test_it_should_set_elem_js () {
         $this->bh->match('button__control', function ($ctx) {
             $ctx->js(true);
@@ -49,6 +52,8 @@ class jsTest extends PHPUnit_Framework_TestCase {
             $this->bh->apply(['block' => 'button', 'content' => ['elem' => 'control']])
         );
     }
+*/
+
     function test_it_should_not_override_user_js () {
         $this->bh->match('button', function ($ctx) {
             $ctx->js(['a' => 2]);

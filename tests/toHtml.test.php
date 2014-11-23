@@ -318,5 +318,29 @@ class bhToHtmlMixTest extends PHPUnit_Framework_TestCase {
             $this->bh->apply(['block' => 'button'])
         );
     }
+}
+
+class bhToHtmlJsTest extends PHPUnit_Framework_TestCase {
+
+    /**
+     * @before
+     */
+    function setupBhInstance () {
+        $this->bh = new BH();
+    }
+
+    function test_itShouldNotSet_iBem_classOnElement () {
+        $this->assertEquals(
+            '<div class="button__control" onclick="return {&quot;button__control&quot;:{}}">submit</div>',
+            $this->bh->apply([ 'block' => 'button', 'elem' => 'control', 'js' => true, 'content' => 'submit' ])
+        );
+    }
+
+    function test_itShouldNotSet_iBem_classOnMixedElement () {
+        $this->assertEquals(
+            '<div class="icon button__control" onclick="return {&quot;button__control&quot;:{}}">submit</div>',
+            $this->bh->apply([ 'block' => 'icon', 'content' => 'submit', 'mix' => [ 'block' => 'button', 'elem' => 'control', 'js' => true ]])
+        );
+    }
 
 }

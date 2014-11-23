@@ -526,6 +526,8 @@ class BH {
                     }
                 }
 
+                $addJSInitClass = $jsParams && !$json->elem;
+
                 if (key_exists('mix', $json) && $json->mix) {
                     foreach ($json->mix as $mix) {
                         if (!$mix || (key_exists('bem', $mix) && $mix->bem === false)) {
@@ -547,12 +549,13 @@ class BH {
                             $jsParams = $jsParams ?: [];
                             $jsParams[$mixBase] = $mix->js === true ? [] : $this->_filterNulls($mix->js);
                             $hasMixJsParams = true;
+                            if (!$addJSInitClass) $addJSInitClass = ($mixBlock && !$mixElem);
                         }
                     }
                 }
 
                 if ($jsParams) {
-                    $cls = $cls . ' i-bem';
+                    if ($addJSInitClass) $cls .= ' i-bem';
                     $jsData = !$hasMixJsParams && $json->js === true ?
                         '{&quot;' . $base . '&quot;:{}}' :
                         $this->attrEscape(str_replace('[]', '{}',
