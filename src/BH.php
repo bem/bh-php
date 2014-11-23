@@ -282,9 +282,13 @@ class BH {
             $res[] = ('}');
         }
         $res[] = ('};');
-        $res = "<?php\nreturn function (\$ms) {\n" . join("\n", $res) . "\n};";
-        file_put_contents("./tmp/bh-matcher.php", $res); // debugging purposes only (!!!)
-        $constructor = include("./tmp/bh-matcher.php"); //eval($res);
+        $res = "return function (\$ms) {\n" . join("\n", $res) . "\n};";
+
+        // debugging purposes only (!!!)
+        // file_put_contents("./tmp/bh-matcher.php", "<?php\n" . $res);
+        // $constructor = include("./tmp/bh-matcher.php");
+
+        $constructor = eval($res);
         return $constructor->bindTo($this);
     }
 

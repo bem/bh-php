@@ -587,4 +587,24 @@ class Context {
         return $this->ctx;
     }
 
+    /**
+     * Конвертирует входной массив в Json или JsonCollection
+     * @param array $bemjson
+     * @return Json
+     */
+    function phpize ($bemjson) {
+        if (isArrayLike($bemjson)) {
+            return JsonCollection::normalize($bemJson);
+        }
+        return JsonCollection::normalizeItem($bemjson);
+    }
+
+    /**
+     * Array.isArray analogue
+     * @param mixed $ex
+     * @return boolean
+     */
+    function isArray ($ex) {
+        return isArrayLike($ex);
+    }
 }
