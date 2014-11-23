@@ -1,5 +1,5 @@
 {
-    "name": "zxqfox/bh",
+    "name": "bem/bh",
     "description": "Template engine. BEMJSON -> HTML processor. PHP port of https://github.com/bem/bh",
     "keywords": [
         "bem",
