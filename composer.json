@@ -15,7 +15,9 @@
         }
     ],
     "support": {
-        "issues": "https://github.com/zxqfox/bh-php/issues"
+        "issues": "https://github.com/zxqfox/bh-php/issues",
+        "forum": "http://ru.bem.info/forum/",
+        "gitter": "https://gitter.im/bem/talk"
     },
     "require": {
         "php": ">=5.4.0"
@@ -32,5 +34,13 @@
     },
     "scripts": {
         "test": "./vendor/bin/phpunit"
+    },
+    "archive": {
+        "exclude": [
+            "/*",
+            "!/LICENSE",
+            "!/README.md",
+            "!/src"
+        ]
     }
 }

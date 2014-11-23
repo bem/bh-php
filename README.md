@@ -1,24 +1,32 @@
 # bh-php
 
-[![Latest Stable Version](https://poser.pugx.org/zxqfox/bh/v/stable.svg)](https://packagist.org/packages/zxqfox/bh)
+[![Build Status](https://travis-ci.org/zxqfox/bh-php.svg?branch=master)](https://travis-ci.org/zxqfox/bh-php)
+ [![Latest Stable Version](https://poser.pugx.org/zxqfox/bh/v/stable.svg)](https://packagist.org/packages/zxqfox/bh)
  [![Total Downloads](https://poser.pugx.org/zxqfox/bh/downloads.svg)](https://packagist.org/packages/zxqfox/bh)
- [![Build Status](https://travis-ci.org/zxqfox/bh-php.svg?branch=master)](https://travis-ci.org/zxqfox/bh-php)
 
 BH is a processor that converts BEMJSON to HTML. Or in other words a template engine.
 
 ## Installation & usage
 
+
+### Installation via composer
+
 ```
 composer require zxqfox/bh
 ```
 
-BH files within a project have `.bh.php` suffix (for example, `page.bh.php`). The file is formed in ???:
-
 ```php
-// installation via composer
 require "vendor/autoload.php";
 $bh = new \BEM\BH();
 // ...
+```
+
+### Manual installation
+
+```
+git clone https://github.com/zxqfox/bh-php.git ./vendor/
+# or
+
 ```
 
 ```php
@@ -28,12 +36,20 @@ $bh = new \BEM\BH();
 // ...
 ```
 
+BH files within a project have `.bh.php` suffix (for example, `page.bh.php`). The file is formed in CommonJS-like format:
 
 ```php
 return function ($bh) {
 	$bh->match(/*...*/);
     // ...
 };
+```
+
+To load this format use this technique:
+```php
+$bh = new \BEM\BH();
+$fn = include('file.bh.php'); $fn($bh); // done. and nothing in global
+// ...
 ```
 
 Use `apply` method to convert source tree of BEMJSON into an output HTML. Use `processBemJson` method to get an interim result in detailed BEMJSON tree form.
@@ -86,6 +102,8 @@ $bh->match(/*array*/ $matchers = [
 	// ... more matchers
 ]);
 ```
+
+Look at more examples in [https://github.com/bem/bh/blob/master/README.md](README.md) or [https://github.com/bem/bh/blob/master/README.ru.md](README.ru.md).
 
 ## License
 
