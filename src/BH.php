@@ -289,7 +289,7 @@ class BH {
         // $constructor = include("./tmp/bh-matcher.php");
 
         $constructor = eval($res);
-        return $constructor->bindTo($this);
+        return $constructor;
     }
 
     /**
@@ -357,7 +357,7 @@ class BH {
                 'fn' => $fn($this->_matchers)
             ];
         }
-        $compiledMatcher =& $this->_fastMatcher;
+        $compiledMatcher = $this->_fastMatcher;
 
         $processContent = !$ignoreContent;
         $infiniteLoopDetection = $this->_infiniteLoopDetection;
@@ -365,13 +365,11 @@ class BH {
         $ctx = new Context($this);
 
         // js: while (node = nodes.shift()) {
-        $stepn = 0;
         while ($step = array_shift($steps)) {
             $json = $step->json;
             $blockName = $step->blockName;
             $blockMods = $step->blockMods;
 
-            // d($stepn++, $step);
             if ($json instanceof JsonCollection) {
                 $j = 0;
                 $arr = $json;
@@ -445,32 +443,25 @@ class BH {
                     $content = $json->content;
                     if ($content instanceof JsonCollection) {
                         $arr = $content;
-                        for ($i = 0, $j = 0, $l = sizeof($arr); $i < $l; $i++) {
-                            $child = $content[$i];
-                            if (is_object($child) || is_array($child)) {
-                                $steps[] = new Step([
-                                    'json' => $child,
-                                    'arr' => $content,
-                                    'index' => $i,
-                                    'position' => ++$j,
-                                    'blockName' => $blockName,
-                                    'blockMods' => $blockMods,
-                                    'parentNode' => $step
-                                ]);
+                        $j = 0;
+                        foreach ($content as $i => $child) {
+                            if (!(is_object($child) || is_array($child))) {
+                                continue;
                             }
+                            $steps[] = new Step([
+                                'json' => $child,
+                                'arr' => $content,
+                                'index' => $i,
+                                'position' => ++$j,
+                                'blockName' => $blockName,
+                                'blockMods' => $blockMods,
+                                'parentNode' => $step
+                            ]);
                         }
                         $content->_listLength = $j;
 
                     } else {
-                        throw new \Exception('asdasd');
-                        /*$steps[] = new Step([
-                            'json' => $content,
-                            'arr' => JsonCollection::normalize($json),
-                            'index' => 'content',
-                            'blockName' => $blockName,
-                            'blockMods' => $blockMods,
-                            'parentNode' => $step
-                        ]);*/
+                        throw new \Exception('Do we need it?');
                     }
                 }
             }
@@ -496,7 +487,7 @@ class BH {
             return $this->_optEscapeContent ? $this->xmlEscape($json) : $json;
         }
 
-        if (isList($json) || $json instanceof JsonCollection) {
+        if (isList($json)) {
             $res = '';
             foreach ($json as $item) {
                 if ($item !== false && $item !== null) {
@@ -586,7 +577,7 @@ class BH {
                     $res .= $json->html;
                 } elseif (!is_null($json->content)) {
                     $content = $json->content;
-                    if (isList($content) || $content instanceof JsonCollection) {
+                    if (isList($content)) {
                         foreach ($content as $item) {
                             if ($item !== false && $item !== null) {
                                 $res .= $this->toHtml($item);

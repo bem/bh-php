@@ -592,7 +592,7 @@ class Context {
      * @return Json
      */
     function phpize ($bemjson) {
-        if (isArrayLike($bemjson)) {
+        if (isList($bemjson)) {
             return JsonCollection::normalize($bemJson);
         }
         return JsonCollection::normalizeItem($bemjson);
@@ -604,6 +604,6 @@ class Context {
      * @return boolean
      */
     function isArray ($ex) {
-        return isArrayLike($ex);
+        return isList($ex);
     }
 }

@@ -13,32 +13,13 @@ function weakjson_decode($s) {
 }
 
 /**
- * Checks an array to be a simple array
- * @param mixed $array
+ * Checks an array to be a simple array or arrayobject
+ * @param boolean $array
  */
-function isList ($array) {
-    if (empty($array) || !is_array($array)) {
-        return null;
-    }
-
-    $l = sizeof($array);
-
-    // empty and arrays with only 0 key are lists
-    if ($l <= 1) {
-        return $l === 1 ? array_key_exists(0, $array) : true;
-    }
-
-    // array with last and inner keys are exists
-    return array_key_exists($l - 1, $array) && ($l <= 2 || array_key_exists($l >> 1, $array));
+function isList ($a) {
+    return is_array($a) && (isset($a[0]) || empty($a) || array_key_exists(0, $a))
+        || $a instanceof \ArrayObject && (isset($a[0]) || !count($a) || array_key_exists(0, $a));
 }
-
-function isArrayLike ($a) {
-    return (is_array($a) || ($a instanceof \ArrayObject)) && array_key_exists(0, $a);
-}
-
-//function isListLike($o) {
-    //return (is_array($o) && isList($o)) || (is_object($o) && $o[0]);
-//}
 
 function d() {
     echo join(' ', array_map(function ($d) {
