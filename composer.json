@@ -26,7 +26,8 @@
         "phpunit/phpunit": "4.3.*",
         "phpunit/php-invoker": "dev-master",
         "phpunit/php-code-coverage": "2.0.*@dev",
-        "johnkary/phpunit-speedtrap": "~1.0@dev"
+        "johnkary/phpunit-speedtrap": "~1.0@dev",
+        "satooshi/php-coveralls": "~0.7@dev"
     },
     "minimum-stability": "dev",
     "autoload": {
