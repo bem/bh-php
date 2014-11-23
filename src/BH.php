@@ -522,7 +522,7 @@ class BH {
                     $cls = static::toBemCssClasses($json, $base);
                     if (key_exists('js', $json) && $json->js !== false) {
                         $jsParams = [];
-                        $jsParams[$base] = $json->js === true ? [] : $json->js;
+                        $jsParams[$base] = $json->js === true ? [] : $this->_filterNulls($json->js);
                     }
                 }
 
@@ -545,7 +545,7 @@ class BH {
                         $cls .= static::toBemCssClasses($mix, $mixBase, $base);
                         if (key_exists('js', $mix) && $mix->js !== false) {
                             $jsParams = $jsParams ?: [];
-                            $jsParams[$mixBase] = $mix->js === true ? [] : $mix->js;
+                            $jsParams[$mixBase] = $mix->js === true ? [] : $this->_filterNulls($mix->js);
                             $hasMixJsParams = true;
                         }
                     }
@@ -555,7 +555,8 @@ class BH {
                     $cls = $cls . ' i-bem';
                     $jsData = !$hasMixJsParams && $json->js === true ?
                         '{&quot;' . $base . '&quot;:{}}' :
-                        $this->attrEscape(str_replace('[]', '{}', json_encode($jsParams, JSON_UNESCAPED_UNICODE)));
+                        $this->attrEscape(str_replace('[]', '{}',
+                            json_encode($jsParams, JSON_UNESCAPED_UNICODE)));
                     $attrs .= ' ' . (key_exists('jsAttr', $json) ? $json->jsAttr : $this->_optJsAttrName) . '="' .
                         ($this->_optJsAttrIsJs ? 'return ' . $jsData : $jsData) . '"';
                 }
@@ -679,5 +680,11 @@ class BH {
             $res[$value][] = $item;
         }
         return $res;
+    }
+
+    protected static function _filterNulls ($arr) {
+        return array_filter($arr, function ($e) {
+            return $e !== null;
+        });
     }
 };
