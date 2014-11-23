@@ -1,6 +1,6 @@
 {
-    "name": "zxqfox/php-bem-bh",
-    "version": "0.0.1",
+    "name": "zxqfox/bh",
+    "version": "0.1.0",
     "description": "Template engine. BEMJSON -> HTML processor. PHP port of https://github.com/bem/bh",
     "keywords": [
         "bem",
@@ -15,7 +15,7 @@
         }
     ],
     "support": {
-        "issues": "https://github.com/zxqfox/php-bem-bh/issues"
+        "issues": "https://github.com/zxqfox/bh-php/issues"
     },
     "require": {
         "php": ">=5.4.0"
@@ -31,6 +31,6 @@
         "psr-4": { "BEM\\": "src/" }
     },
     "scripts": {
-        "test": "phpunit"
+        "test": "./vendor/bin/phpunit"
     }
 }
