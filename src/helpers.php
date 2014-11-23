@@ -3,7 +3,7 @@
 namespace BEM;
 
 if (!defined('__undefined')) {
-    define('__undefined', '\0undefined');
+    define('__undefined', "\0undef");
 }
 
 function weakjson_decode($s) {
