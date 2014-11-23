@@ -6,11 +6,14 @@
 
 BH is a processor that converts BEMJSON to HTML. Or in other words a template engine.
 
-## Installation & usage
+## Installation
 
+### Via composer
 
-### Installation via composer
-
+```
+php composer.phar require zxqfox/bh
+```
+or (if you have composer in your path)
 ```
 composer require zxqfox/bh
 ```
@@ -24,17 +27,28 @@ $bh = new \BEM\BH();
 ### Manual installation
 
 ```
-git clone https://github.com/zxqfox/bh-php.git ./vendor/
-# or
-
+# via git
+git clone https://github.com/zxqfox/bh-php.git ./vendor/bh
 ```
+```
+# via wget + tar
+wget https://github.com/zxqfox/bh-php/archive/master.tar.gz # download archive
+tar -xzvf master.tar.gz --exclude=tests  # extract
+[ ! -d ./vendor ] && mkdir ./vendor      # create vendor director
+mv ./bh-php-master ./vendor/bh           # move library to vendor
+rm master.tar.gz                         # cleanup
+```
+
+Or just download [https://github.com/zxqfox/bh-php/archive/master.zip](latest version) and unpack to `./vendor/bh` path (or any path you want).
 
 ```php
 // manual installation
-require "vendor/bh-php/index.php"; // if installed manually
+require "vendor/bh/index.php";
 $bh = new \BEM\BH();
 // ...
 ```
+
+### Usage
 
 BH files within a project have `.bh.php` suffix (for example, `page.bh.php`). The file is formed in CommonJS-like format:
 
@@ -103,7 +117,7 @@ $bh->match(/*array*/ $matchers = [
 ]);
 ```
 
-Look at more examples in [https://github.com/bem/bh/blob/master/README.md](README.md) or [https://github.com/bem/bh/blob/master/README.ru.md](README.ru.md).
+Look at more examples in [README.md](https://github.com/bem/bh/blob/master/README.md) or [README.ru.md](https://github.com/bem/bh/blob/master/README.ru.md).
 
 ## License
 
