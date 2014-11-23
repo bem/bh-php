@@ -1,6 +1,7 @@
 # bh-php
 
 [![Build Status](https://travis-ci.org/zxqfox/bh-php.svg?branch=master)](https://travis-ci.org/zxqfox/bh-php)
+ [![Coverage Status](https://img.shields.io/coveralls/zxqfox/bh-php.svg)](https://coveralls.io/r/zxqfox/bh-php)
  [![Latest Stable Version](https://poser.pugx.org/zxqfox/bh/v/stable.svg)](https://packagist.org/packages/zxqfox/bh)
  [![Total Downloads](https://poser.pugx.org/zxqfox/bh/downloads.svg)](https://packagist.org/packages/zxqfox/bh)
 

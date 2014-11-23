@@ -5,14 +5,13 @@
          backupStaticAttributes="false"
          bootstrap="vendor/autoload.php"
          colors="true"
-         _convertErrorsToExceptions="true"
-         _convertNoticesToExceptions="true"
-         _convertWarningsToExceptions="true"
+         convertErrorsToExceptions="true"
+         convertNoticesToExceptions="true"
+         convertWarningsToExceptions="true"
          processIsolation="false"
          stopOnFailure="false"
          syntaxCheck="false"
-        >
-
+>
     <testsuites>
         <testsuite name="Basic">
             <directory suffix=".test.php">./tests/basic/</directory>
@@ -36,4 +35,18 @@
             </arguments>
         </listener>
     </listeners>
+
+    <filter>
+        <whitelist>
+            <directory suffix=".php">./src/</directory>
+        </whitelist>
+        <exclude>
+            <directory>./vendor</directory>
+            <directory>./tests</directory>
+        </exclude>
+    </filter>
+
+    <logging>
+        <log type="coverage-clover" target="build/logs/clover.xml"/>
+    </logging>
 </phpunit>
