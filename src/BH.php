@@ -259,13 +259,13 @@ class BH {
                     if (isset($decl['elemMod'])) {
                         $modKey = static::strEscape($decl['elemMod']);
                         $conds[] = (
-                            'is_object($json->mods) && key_exists("' . $modKey . '", $json->mods) && $json->mods->{"' . $modKey . '"} === ' .
+                            'isset($json->mods) && $json->mods->{"' . $modKey . '"} === ' .
                                 ($decl['elemModVal'] === true ? 'true' : '"' . static::strEscape($decl['elemModVal']) . '"'));
                     }
                     if (isset($decl['blockMod'])) {
                         $modKey = static::strEscape($decl["blockMod"]);
                         $conds[] = (
-                            'is_object($json->blockMods) && key_exists("' . $modKey . '", $json->blockMods) && $json->blockMods->{"' . $modKey . '"} === ' .
+                            'isset($json->blockMods) && $json->blockMods->{"' . $modKey . '"} === ' .
                                 ($decl['blockModVal'] === true ? 'true' : '"' . static::strEscape($decl['blockModVal']) . '"'));
                     }
 
@@ -337,8 +337,7 @@ class BH {
         $bemJson = $resultArr[0];
         $blockMods = null;
         if ($bemJson instanceof Json) {
-            $blockMods = (!$bemJson->elem && $bemJson->mods) ? $bemJson->mods
-                : (new Mods());
+            $blockMods = (!$bemJson->elem && isset($bemJson->mods)) ? $bemJson->mods : $bemJson->blockMods;
         }
 
         $steps = [];
@@ -401,17 +400,16 @@ class BH {
                     // skip
                 } elseif ($json->elem) {
                     $blockName = $json->block = isset($json->block) ? $json->block : $blockName;
+                    // sync mods:
                     // blockMods = json.blockMods = json.blockMods || blockMods
-                    $blockMods = $json->blockMods = $json->blockMods ?: $blockMods;
-                    if ($json->elemMods) {
-                        if (is_array($json->elemMods)) {
-                            $json->elemMods = new Mods($json->elemMods);
-                        }
+                    $blockMods = $json->blockMods = isset($json->blockMods) ? $json->blockMods : $blockMods;
+                    // sync elem mods:
+                    if (isset($json->elemMods)) {
                         $json->mods = $json->elemMods;
                     }
                 } elseif ($json->block) {
                     $blockName = $json->block;
-                    $blockMods = $json->blockMods = $json->mods ?: new Mods();
+                    $blockMods = $json->blockMods = $json->mods;
                 }
 
                 if ($json && $json->block) {
@@ -645,8 +643,8 @@ class BH {
         }
 
         // if (mods = json.mods || json.elem && json.elemMods)
-        $mods = $json->mods ?:
-            ($json->elem && key_exists('elemMods', $json) ? $json->elemMods : null);
+        $mods = isset($json->mods) ? $json->mods :
+            ($json->elem && isset($json->elemMods) ? $json->elemMods : null);
         if ($mods) {
             foreach ($mods as $k => $mod) {
                 if ($mod) {

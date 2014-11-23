@@ -17,11 +17,11 @@ class Json {
     public $content;
 
     /** @var Mods */
-    public $mods;
+    protected $mods;
     /** @var Mods */
-    public $blockMods;
+    protected $blockMods;
     /** @var Mods */
-    public $elemMods;
+    protected $elemMods;
 
     /** @var array */
     public $attrs;
@@ -63,7 +63,28 @@ class Json {
     }
 
     public function __get ($name) {
+        if ($name === 'mods' || $name === 'blockMods' || $name === 'elemMods') {
+            if (is_null($this->$name)) {
+                $this->$name = new Mods();
+            }
+            return $this->$name;
+        }
         return null;
+    }
+
+    public function __set ($name, $value) {
+        if ($name === 'mods' || $name === 'blockMods' || $name === 'elemMods') {
+            $this->$name = is_array($value) ? new Mods($value) : $value;
+        } else {
+            $this->$name = $value;
+        }
+    }
+
+    public function __isset ($name) {
+        if ($name === 'mods' || $name === 'blockMods' || $name === 'elemMods') {
+            return !empty($this->$name);
+        }
+        return isset($this->$name);
     }
 
 /*
