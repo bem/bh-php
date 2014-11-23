@@ -1,6 +1,5 @@
 {
     "name": "zxqfox/bh",
-    "version": "0.1.0",
     "description": "Template engine. BEMJSON -> HTML processor. PHP port of https://github.com/bem/bh",
     "keywords": [
         "bem",
@@ -32,7 +31,9 @@
         "psr-4": { "BEM\\": "src/" }
     },
     "scripts": {
-        "test": "./vendor/bin/phpunit"
+        "cov-install": "composer require -n phpunit/php-code-coverage:~2.0@stable && mkdir -p build/logs",
+        "cov": "./vendor/bin/phpunit -c phpunit.xml.dist --coverage-clover ./build/logs/clover.xml",
+        "test": "./vendor/bin/phpunit -c phpunit.xml.dist"
     },
     "archive": {
         "exclude": [
