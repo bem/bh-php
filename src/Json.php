@@ -38,7 +38,7 @@ class Json {
             $node = (array)($node);
         }
         elseif (!is_array($node)) {
-            throw new \Exception('Incorrect data for Context creation');
+            throw new \Exception('Incorrect data for Json creation');
         }
 
         $this->block    = isset($node['block']) ? $node['block'] : null;

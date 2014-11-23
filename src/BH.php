@@ -227,31 +227,24 @@ class BH {
         for ($i = sizeof($allMatchers) - 1; $i >= 0; $i--) {
             $matcherInfo = $allMatchers[$i];
             $expr = $matcherInfo['expr'];
-            //$vars[] = '$_m' . $i . ' = $ms[' . $i . ']["fn"]';
             $decl = ['fn' => $matcherInfo['fn'], '__id' => $matcherInfo['__id'], 'index' => $i]
                 + static::parseBemCssClasses($matcherInfo['expr']);
             $declarations[] = $decl;
         }
 
-        $res[] = 'return function ($ctx, $json) use ($ms) {'; // ?
-        // $res[] = join(";\n", $vars) . ';';
+        $res[] = 'return function ($ctx, $json) use ($ms) {';
 
-        $res[] = ('$b = $json->block ?: __undefined;');
-        $res[] = ('$e = $json->elem ?: __undefined;');
-        // $res[] = ('switch ($b) { /*block*/');
-        $bElse = '';
+        $res[] = 'switch ($json->block ?: __undefined) {';
         $declByBlock = static::groupBy($declarations, 'block');
         foreach ($declByBlock as $blockName => $blockData) {
-            $res[] = ($bElse . 'if ($b === "' . static::strEscape($blockName) . '") {');
-            $bElse = 'else';
+            $res[] = 'case "' . static::strEscape($blockName) . '":';
 
-            $eElse = '';
+            $res[] = '  switch ($json->elem ?: __undefined) {';
             $declsByElem = static::groupBy($blockData, 'elem');
             foreach ($declsByElem as $elemName => $decls) {
                 $elemCase = $elemName === __undefined ? '__undefined' : '"' . static::strEscape($elemName) . '"';
-                $res[] = '  ' . $eElse . 'if ($e === ' . $elemCase . ') {';
+                $res[] = '  case ' . $elemCase . ':';
 
-                $eElse = 'else';
                 foreach ($decls as $decl) {
                     $__id = $decl['__id'];
                     $conds = [];
@@ -277,18 +270,23 @@ class BH {
                     $res[] = ('    }');
                 }
 
-                $res[] = ('  }');
+                $res[] = ('    return;');
             }
             $res[] = ('}');
+            $res[] = ('  return;');
         }
+        $res[] = ('}');
         $res[] = ('};');
         $res = "return function (\$ms) {\n" . join("\n", $res) . "\n};";
 
         // debugging purposes only (!!!)
-        // file_put_contents("./tmp/bh-matcher.php", "<?php\n" . $res);
-        // $constructor = include("./tmp/bh-matcher.php");
-
+        // if ($debug) {
+        //   file_put_contents("./tmp/bh-matcher.php", "<?php\n" . $res);
+        //   $constructor = include("./tmp/bh-matcher.php");
+        // } else {
         $constructor = eval($res);
+        // }
+
         return $constructor;
     }
 
