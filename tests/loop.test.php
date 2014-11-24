@@ -2,9 +2,6 @@
 
 use BEM\BH;
 
-/**
- * @runTestsInSeparateProcesses
- */
 class loopJsAttrTest extends PHPUnit_Framework_TestCase {
 
     /**
