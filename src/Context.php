@@ -79,8 +79,7 @@ class Context {
                 } elseif ($isObj) {
                     $target->$k = $v;
                 } else {
-                    throw new Exception('Woops.');
-                    // ?
+                    // skip
                 }
             }
         }
@@ -292,10 +291,9 @@ class Context {
             $mods = $this->ctx->mods;
             $mods->$key = !key_exists($key, $mods) || $force ? $value : $mods->$key;
             return $this;
-        } elseif (isset($this->ctx->mods)) {
-            $mods = $this->ctx->mods;
-            return key_exists($key, $mods) ? $mods->$key : null;
         }
+        return isset($this->ctx->mods) && key_exists($key, $this->ctx->mods)
+            ? $this->ctx->mods->$key : null;
     }
 
     /**
@@ -600,7 +598,7 @@ class Context {
      */
     function phpize ($bemjson) {
         if (isList($bemjson)) {
-            return JsonCollection::normalize($bemJson);
+            return JsonCollection::normalize($bemjson);
         }
         return JsonCollection::normalizeItem($bemjson);
     }

@@ -1,24 +1,21 @@
 <?php
 
-use BEM\BH;
-
-class loopJsAttrTest extends PHPUnit_Framework_TestCase {
+class loopJsAttrTest extends PHPUnit_Framework_BHTestCase {
 
     /**
      * @before
      */
     function setupBhInstance () {
-        $this->bh = new BH();
         $this->bh->enableInfiniteLoopDetection(true);
     }
 
     /**
      * @medium
      * @expectedException Exception
-     * @expectedExceptionMessage Infinite matcher loop detected
+     * @expectedExceptionMessage Infinite json loop detected
      */
     function test_it_should_throw_an_error_on_json_loop_detection () {
-        $button = ['block' => 'button'];
+        $button = $this->ctx->phpize(['block' => 'button']);
         $this->bh->match('button', function ($ctx) use ($button) {
             $ctx->content($button);
         });

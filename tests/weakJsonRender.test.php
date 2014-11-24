@@ -24,7 +24,6 @@ bemjson;
 </html>
 result;
 
-
     /**
      * @before
      */

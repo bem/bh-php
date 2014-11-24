@@ -22,7 +22,7 @@ class extendTest extends PHPUnit_Framework_TestCase {
         $this->bh->apply(['block' => 'button']);
     }
 
-    function test_it_should_extend_object____ () {
+    function test_it_should_extend_object () {
         $this->bh->match('button', function ($ctx) {
             $this->assertEquals(
                 'foo',
