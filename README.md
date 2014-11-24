@@ -11,7 +11,7 @@ BH is a processor that converts BEMJSON to HTML. Or in other words a template en
 
 ## Table of Contents
 
-- [Intallation](#installation)
+- [Installation](#installation)
 - [Friendly Packages](#friendly-packages)
 - [Usage](#usage)
 - [Conversion](#conversion)
@@ -50,17 +50,17 @@ git clone https://github.com/zxqfox/bh-php.git ./vendor/bh
 ```
 # via wget + tar
 wget https://github.com/zxqfox/bh-php/archive/master.tar.gz # download archive
-tar -xzvf master.tar.gz --exclude=tests  # extract
-[ ! -d ./vendor ] && mkdir ./vendor      # create vendor director
-mv ./bh-php-master ./vendor/bh           # move library to vendor
-rm master.tar.gz                         # cleanup
+tar -xzvf master.tar.gz --exclude=tests        # extract
+[ ! -d ./vendor/bem ] && mkdir ./vendor/bem -p # create vendor director
+mv ./bh-php-master ./vendor/bem/bh             # move library to vendor
+rm master.tar.gz                               # cleanup
 ```
 
-Or just download [https://github.com/zxqfox/bh-php/archive/master.zip](latest version) and unpack to `./vendor/bh` path (or any path you want).
+Or just download [https://github.com/zxqfox/bh-php/archive/master.zip](latest version) and unpack to `./vendor/bem/bh` path (or any path you want).
 
 ```php
 // manual installation
-require "vendor/bh/index.php";
+require "vendor/bem/bh/index.php";
 $bh = new \BEM\BH();
 // ...
 ```
