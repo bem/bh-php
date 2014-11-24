@@ -91,7 +91,7 @@ $fn($bh); // done. and nothing in global
 ```
 
 This allows you to have several instances at the moment:
-```
+```php
 $bh1 = new \BEM\BH();
 $bh2 = new \BEM\BH();
 
