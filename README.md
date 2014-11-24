@@ -9,6 +9,8 @@
 
 BH is a processor that converts BEMJSON to HTML. Or in other words a template engine.
 
+Works with `PHP 5.4+` (except `HHVM`)
+
 ## Table of Contents
 
 - [Installation](#installation)
