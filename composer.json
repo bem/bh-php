@@ -31,9 +31,9 @@
         "psr-4": { "BEM\\": "src/" }
     },
     "scripts": {
-        "cov-install": "composer require -n phpunit/php-code-coverage:~2.0@stable && mkdir -p build/logs",
-        "cov": "./vendor/bin/phpunit -c phpunit.xml.dist --coverage-clover ./build/logs/clover.xml",
-        "test": "./vendor/bin/phpunit -c phpunit.xml.dist"
+        "cov-install": "composer require -n phpunit/php-code-coverage:~2.0@stable satooshi/php-coveralls:~0.6@stable --dev && mkdir -p build/logs",
+        "cov": "phpunit --coverage-clover ./build/logs/clover.xml && COVERALLS_RUN_LOCALLY=1 COVERALLS_REPO_TOKEN=1 coveralls -v --ansi --dry-run",
+        "test": "phpunit"
     },
     "archive": {
         "exclude": [
