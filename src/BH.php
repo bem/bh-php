@@ -205,8 +205,9 @@ class BH {
         $this->_matchers[] = [ // better to make it via Matcher object with __invoke
             'expr' => $expr,
             'fn'   => $matcher,
-            '__id' => ($this->_lastMatchId++)
+            '__id' => $this->_lastMatchId
         ];
+        $this->_lastMatchId++;
 
         // cleanup cached matcher to rebuild it on next render
         $this->_fastMatcher = null;
@@ -301,7 +302,9 @@ class BH {
         //$_callId = static::$_toHtmlCallId ++;
         //d('processBemjson#' . $_callId, $bemJson);
         if (empty($bemJson)) {
-            return is_array($bemJson) ? '<div></div>' : '';
+            return is_array($bemJson)
+                ? '<div></div>'
+                : '';
         }
 
         if (!$this->_inited) {
@@ -313,7 +316,7 @@ class BH {
             // string? like '{...}' || '[{...}]' || '([...])'
             if (!is_string($bemJson)) {
                 // return as is
-                return $bemJson;
+                return (string)$bemJson;
             }
             $bemJson = trim($bemJson, "\n\t\r ()\x0B\0");
             $c = $bemJson[0];
@@ -372,20 +375,19 @@ class BH {
                 $j = 0;
                 $arr = $json;
                 foreach ($arr as $i => $child) {
-                    if (is_array($child)) {
-                        $child = $arr[$i] = new Json($child);
+                    if (!is_object($child)) {
+                        continue;
                     }
-                    if (is_object($child)) {
-                        $steps[] = new Step([
-                            'json' => $child,
-                            'arr' => $arr,
-                            'index' => $i,
-                            'position' => ++$j,
-                            'blockName' => $blockName,
-                            'blockMods' => $blockMods,
-                            'parentNode' => $step // step
-                        ]);
-                    }
+                    // walk each bem node inside collection
+                    $steps[] = new Step([
+                        'json' => $child,
+                        'arr' => $arr,
+                        'index' => $i,
+                        'position' => ++$j,
+                        'blockName' => $blockName,
+                        'blockMods' => $blockMods,
+                        'parentNode' => $step // step
+                    ]);
                 }
                 $arr->_listLength = $j;
 
@@ -439,7 +441,8 @@ class BH {
 
                 if (!$stopProcess && $processContent && isset($json->content) && !is_scalar($json->content)) {
                     $content = $json->content;
-                    if ($content instanceof JsonCollection) {
+                    //if ($content instanceof JsonCollection) {
+
                         $arr = $content;
                         $j = 0;
                         foreach ($content as $i => $child) {
@@ -458,9 +461,10 @@ class BH {
                         }
                         $content->_listLength = $j;
 
-                    } else {
-                        throw new \Exception('Do we need it?');
-                    }
+                    /*} else {
+                        // commented since 24 nov '14
+                        // throw new \Exception('Do we need it?');
+                    }*/
                 }
             }
 
