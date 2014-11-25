@@ -175,9 +175,16 @@ class Context {
         return null;
     }
 
-    // fallback for explicit values? (Fatal error: Cannot pass parameter 2 by reference)
-    function &tParamRef ($key) {
+    // special ref behaviour (Fatal error: Cannot pass parameter 2 by reference)
+    // should be replaced with tParam and simple jslike objects someday
+    function &tParamRef ($key, &$value = null, $force = false) {
         $node = $this->node;
+        if (func_num_args() > 1) {
+            if ($force || !isset($node->tParams[$key])) {
+                $node->tParams[$key] =& $value;
+            }
+            return $this;
+        }
         while ($node) {
             if (isset($node->tParams[$key])) {
                 return $node->tParams[$key];

@@ -75,7 +75,7 @@ class tParamTest extends PHPUnit_Framework_BHTestCase {
 
     // php specific tests
 
-    function test_itShouldPassParamsByReference () {
+    function test_itShouldFetchTParamsByReference () {
         $this->bh->match('button', function ($ctx) {
             // last again without
             $this->assertEquals(['baz' => 1, 'bar' => 3], $ctx->tParam('foo'));
@@ -88,6 +88,23 @@ class tParamTest extends PHPUnit_Framework_BHTestCase {
         $this->bh->match('button', function ($ctx) {
             // first - set without ref
             $ctx->tParam('foo', ['baz' => 1]);
+        });
+        $this->bh->apply(['block' => 'button']);
+    }
+
+    function test_itShouldPassParamsByReference () {
+        $foo = ['baz' => 1];
+        $this->bh->match('button', function ($ctx) use (&$foo) {
+            // last - testing referenced
+            $this->assertEquals(['baz' => 1, 'bar' => 2], $foo);
+        });
+        $this->bh->match('button', function ($ctx) {
+            // second - using by ref
+            $ctx->tParamRef('foo')['bar'] = 2;
+        });
+        $this->bh->match('button', function ($ctx) use (&$foo) {
+            // first - passing with ref
+            $ctx->tParamRef('foo', $foo);
         });
         $this->bh->apply(['block' => 'button']);
     }
