@@ -2,18 +2,13 @@
 
 use BEM\BH;
 
-class tParamTest extends PHPUnit_Framework_TestCase {
+class tParamTest extends PHPUnit_Framework_BHTestCase {
 
-    /**
-     * @before
-     */
-    function setupBhInstance () {
-        $this->bh = new BH();
-    }
+    // bh.js ported tests
 
     function test_it_should_return_tParam_value_in_nested_element () {
         $this->bh->match('button', function ($ctx) {
-            $ctx->tParam('name', 'sample-name');
+            $ctx->tParam('name', $_ = 'sample-name');
         });
         $this->bh->match('button__inner', function ($ctx) {
             $this->assertEquals('sample-name', $ctx->tParam('name'));
@@ -23,7 +18,7 @@ class tParamTest extends PHPUnit_Framework_TestCase {
 
     function test_it_should_return_tParam_value_in_nested_block () {
         $this->bh->match('button', function($ctx) {
-            $ctx->tParam('name', 'sample-name');
+            $ctx->tParam('name', $_ = 'sample-name');
         });
         $this->bh->match('input', function($ctx) {
             $this->assertEquals('sample-name', $ctx->tParam('name'));
@@ -33,7 +28,7 @@ class tParamTest extends PHPUnit_Framework_TestCase {
 
     function test_it_should_return_tParam_value_in_sub_nested_element () {
         $this->bh->match('button', function ($ctx) {
-            $ctx->tParam('name', 'sample-name');
+            $ctx->tParam('name', $_ = 'sample-name');
         });
         $this->bh->match('button__sub-inner', function ($ctx) {
             $this->assertEquals('sample-name', $ctx->tParam('name'));
@@ -43,7 +38,7 @@ class tParamTest extends PHPUnit_Framework_TestCase {
 
     function test_it_should_not_return_tParam_value_in_non_nested_element () {
         $this->bh->match('button', function ($ctx) {
-            $ctx->tParam('name', 'sample-name');
+            $ctx->tParam('name', $_ = 'sample-name');
         });
         $this->bh->match('input', function ($ctx) {
             $this->assertNull($ctx->tParam('name'));
@@ -53,10 +48,10 @@ class tParamTest extends PHPUnit_Framework_TestCase {
 
     function test_it_should_not_override_later_declarations () {
         $this->bh->match('button', function ($ctx) {
-            $ctx->tParam('foo', 1);
+            $ctx->tParam('foo', $_ = 1);
         });
         $this->bh->match('button', function ($ctx) {
-            $ctx->tParam('foo', 2);
+            $ctx->tParam('foo', $_ = 2);
         });
         $this->bh->match('button__control', function ($ctx) {
             $this->assertEquals(2, $ctx->tParam('foo'));
@@ -66,14 +61,36 @@ class tParamTest extends PHPUnit_Framework_TestCase {
 
     function test_it_should_override_later_declarations_with_force_flag () {
         $this->bh->match('button', function ($ctx) {
-            $ctx->tParam('foo', 1, true);
+            $ctx->tParam('foo', $_ = 1, true);
         });
         $this->bh->match('button', function ($ctx) {
-            $ctx->tParam('foo', 2);
+            $ctx->tParam('foo', $_ = 2);
         });
         $this->bh->match('button__control', function ($ctx) {
             $this->assertEquals(1, $ctx->tParam('foo'));
         });
         $this->bh->apply(['block' => 'button', 'content' => ['elem' => 'control']]);
     }
+
+
+    // php specific tests
+
+    function test_itShouldPassParamsByReference () {
+        $this->bh->match('button', function ($ctx) {
+            // last
+            $this->assertEquals(['baz' => 1, 'bar' => 3], $ctx->tParam('foo'));
+        });
+        $this->bh->match('button', function ($ctx) {
+            // second
+            $foo =& $ctx->tParamRef('foo');
+            $foo['bar'] = $foo['baz'] + 2;
+        });
+        $this->bh->match('button', function ($ctx) {
+            // first
+            $_ = ['baz' => 1];
+            $ctx->tParamRef('foo', $_);
+        });
+        $this->bh->apply(['block' => 'button']);
+    }
+
 }

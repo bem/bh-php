@@ -155,7 +155,7 @@ class Context {
      * @param boolean [$force]
      * @return Context|mixed
      */
-    function tParam ($key, $value = null, $force = false) {
+    function &tParamRef ($key, &$value = null, $force = false) {
         $keyName = $key;
         $node = $this->node;
 
@@ -173,7 +173,14 @@ class Context {
             $node = $node->parentNode;
         }
 
-        return null;
+        $_ = null;
+        return $_;
+    }
+
+    // fallback for explicit values? (Fatal error: Cannot pass parameter 2 by reference)
+    function tParam ($key, $value = null, $force = null) {
+        $w = call_user_func_array(array($this, 'tParamRef'), func_get_args());
+        return $w;
     }
 
     /**
