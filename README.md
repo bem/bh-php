@@ -46,7 +46,7 @@ $bh = new \BEM\BH();
 
 ```
 # via git
-git clone https://github.com/zxqfox/bh-php.git ./vendor/bh
+git clone https://github.com/zxqfox/bh-php.git ./vendor/bem/bh
 ```
 
 ```
