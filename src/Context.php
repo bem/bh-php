@@ -469,7 +469,7 @@ class Context {
         //     js ? this.extend(this.ctx.js, js) : this.ctx.js;
         $this->ctx->js = !key_exists('js', $this->ctx) || $force ?
             ($js === true ? [] : $js) :
-            ($this->ctx->js + ($js ?: []));
+            ((is_array($this->ctx->js) ? $this->ctx->js : []) + ($js && is_array($js) ? $js : []));
 
         return $this;
     }
