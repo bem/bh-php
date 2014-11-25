@@ -155,32 +155,37 @@ class Context {
      * @param boolean [$force]
      * @return Context|mixed
      */
-    function &tParamRef ($key, &$value = null, $force = false) {
-        $keyName = $key;
+    function tParam ($key, $value = null, $force = false) {
         $node = $this->node;
 
         if (func_num_args() > 1) {
-            if ($force || !isset($node->tParams[$keyName])) {
-                $node->tParams[$keyName] = $value;
+            if ($force || !isset($node->tParams[$key])) {
+                $node->tParams[$key] = $value;
             }
             return $this;
         }
 
         while ($node) {
-            if (isset($node->tParams[$keyName])) {
-                return $node->tParams[$keyName];
+            if (isset($node->tParams[$key])) {
+                return $node->tParams[$key];
             }
             $node = $node->parentNode;
         }
 
-        $_ = null;
-        return $_;
+        return null;
     }
 
     // fallback for explicit values? (Fatal error: Cannot pass parameter 2 by reference)
-    function tParam ($key, $value = null, $force = null) {
-        $w = call_user_func_array(array($this, 'tParamRef'), func_get_args());
-        return $w;
+    function &tParamRef ($key) {
+        $node = $this->node;
+        while ($node) {
+            if (isset($node->tParams[$key])) {
+                return $node->tParams[$key];
+            }
+            $node = $node->parentNode;
+        }
+        $_ = null;
+        return $_;
     }
 
     /**
@@ -600,7 +605,7 @@ class Context {
      */
     function phpize ($bemjson) {
         if (isList($bemjson)) {
-            return JsonCollection::normalize($bemJson);
+            return JsonCollection::normalize($bemjson);
         }
         return JsonCollection::normalizeItem($bemjson);
     }
