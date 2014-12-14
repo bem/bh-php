@@ -30,14 +30,16 @@ Works with `PHP 5.4+` (except `HHVM`)
 
 ### Via composer
 
+Execute in your shell:
 ```
 php composer.phar require bem/bh
 ```
-or (if you have composer in your path)
+or (if you have `composer` in your path)
 ```
 composer require bem/bh
 ```
 
+And use in your code:
 ```php
 require "vendor/autoload.php";
 $bh = new \BEM\BH();
@@ -46,11 +48,13 @@ $bh = new \BEM\BH();
 
 ### Manual installation
 
+Download using `git` (execute this in your shell):
 ```
 # via git
 git clone https://github.com/zxqfox/bh-php.git ./vendor/bem/bh
 ```
 
+Using `wget` and `tar`:
 ```
 # via wget + tar
 wget https://github.com/zxqfox/bh-php/archive/master.tar.gz # download archive
@@ -60,8 +64,9 @@ mv ./bh-php-master ./vendor/bem/bh             # move library to vendor
 rm master.tar.gz                               # cleanup
 ```
 
-Or just download [https://github.com/zxqfox/bh-php/archive/master.zip](latest version) and unpack to `./vendor/bem/bh` path (or any path you want).
+Or just download [the latest version](https://github.com/zxqfox/bh-php/archive/master.zip) and unpack to `./vendor/bem/bh` path (or any path you want).
 
+And use in your code:
 ```php
 // manual installation
 require "vendor/bem/bh/index.php";
