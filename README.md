@@ -1,13 +1,12 @@
 # bh-php
 
 [![Gitter](https://badges.gitter.im/Join Chat.svg)](https://gitter.im/zxqfox/bh-php?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+ [![Latest Stable Version](https://img.shields.io/packagist/v/bem/bh.svg?style=flat)](https://packagist.org/packages/bem/bh)
+ [![Total Downloads](https://img.shields.io/packagist/dm/bem/bh.svg?style=flat)](https://packagist.org/packages/bem/bh)
 
-[![Build Status](https://travis-ci.org/zxqfox/bh-php.svg?branch=master)](https://travis-ci.org/zxqfox/bh-php)
- [![Coverage Status](https://img.shields.io/coveralls/zxqfox/bh-php.svg)](https://coveralls.io/r/zxqfox/bh-php)
- [![Dependency Status](https://www.versioneye.com/user/projects/547248e89dcf6da712000ff5/badge.svg)](https://www.versioneye.com/user/projects/547248e89dcf6da712000ff5)
-
-[![Latest Stable Version](https://poser.pugx.org/bem/bh/v/stable.svg)](https://packagist.org/packages/bem/bh)
- [![Total Downloads](https://poser.pugx.org/bem/bh/downloads.svg)](https://packagist.org/packages/bem/bh)
+[![Build Status](https://img.shields.io/travis/zxqfox/bh-php.svg?style=flat)](https://travis-ci.org/zxqfox/bh-php)
+ [![Coverage Status](https://img.shields.io/coveralls/zxqfox/bh-php.svg?style=flat)](https://coveralls.io/r/zxqfox/bh-php)
+ [![Dependency Status](https://img.shields.io/gemnasium/zxqfox/bh-php.svg?style=flat)](https://gemnasium.com/zxqfox/bh-php)
 
 BH is a processor that converts BEMJSON to HTML. Or in other words a template engine.
 
