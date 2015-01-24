@@ -1,16 +1,16 @@
 # bh-php
 
-[![Gitter](https://badges.gitter.im/Join Chat.svg)](https://gitter.im/zxqfox/bh-php?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![Gitter](https://badges.gitter.im/Join Chat.svg)](https://gitter.im/bem/talk?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
  [![Latest Stable Version](https://img.shields.io/packagist/v/bem/bh.svg?style=flat)](https://packagist.org/packages/bem/bh)
  [![Total Downloads](https://img.shields.io/packagist/dm/bem/bh.svg?style=flat)](https://packagist.org/packages/bem/bh)
 
-[![Build Status](https://img.shields.io/travis/zxqfox/bh-php.svg?style=flat)](https://travis-ci.org/zxqfox/bh-php)
- [![Coverage Status](https://img.shields.io/coveralls/zxqfox/bh-php.svg?style=flat)](https://coveralls.io/r/zxqfox/bh-php)
- [![Dependency Status](https://img.shields.io/gemnasium/zxqfox/bh-php.svg?style=flat)](https://gemnasium.com/zxqfox/bh-php)
+[![Build Status](https://img.shields.io/travis/bem/bh-php.svg?style=flat)](https://travis-ci.org/bem/bh-php)
+ [![Coverage Status](https://img.shields.io/coveralls/bem/bh-php.svg?style=flat)](https://coveralls.io/r/bem/bh-php)
+ [![Dependency Status](https://img.shields.io/gemnasium/bem/bh-php.svg?style=flat)](https://gemnasium.com/bem/bh-php)
 
 BH is a processor that converts BEMJSON to HTML. Or in other words a template engine.
 
-Works with `PHP 5.4+` (except `HHVM`)
+Works with `PHP 5.4+` (doesn't work with `HHVM` 'cause it lacks a lot of required functionality)
 
 ## Table of Contents
 
@@ -22,8 +22,8 @@ Works with `PHP 5.4+` (except `HHVM`)
 ## Friendly Packages
 
 - [Project Stub with BH.PHP tech](https://github.com/bem/project-stub/tree/php-bem-bh)
-- [BEM Core Library with BH.PHP templates](https://github.com/zxqfox/bem-core/tree/feature/php-bh-templates%40v2)
-- [BEM Components Library with BH.PHP templates](https://github.com/zxqfox/bem-components/tree/feature/php-bh-templates%40v2)
+- [BEM Core Library with BH.PHP templates](https://github.com/zxqfox/bem-core/tree/feature/php-bh-templates%40v2) - tmp branch
+- [BEM Components Library with BH.PHP templates](https://github.com/zxqfox/bem-components/tree/feature/php-bh-templates%40v2) - tmp branch
 
 ## Installation
 
@@ -50,20 +50,20 @@ $bh = new \BEM\BH();
 Download using `git` (execute this in your shell):
 ```
 # via git
-git clone https://github.com/zxqfox/bh-php.git ./vendor/bem/bh
+git clone https://github.com/bem/bh-php.git ./vendor/bem/bh
 ```
 
 Using `wget` and `tar`:
 ```
 # via wget + tar
-wget https://github.com/zxqfox/bh-php/archive/master.tar.gz # download archive
+wget https://github.com/bem/bh-php/archive/master.tar.gz # download archive
 tar -xzvf master.tar.gz --exclude=tests        # extract
 [ ! -d ./vendor/bem ] && mkdir ./vendor/bem -p # create vendor director
 mv ./bh-php-master ./vendor/bem/bh             # move library to vendor
 rm master.tar.gz                               # cleanup
 ```
 
-Or just download [the latest version](https://github.com/zxqfox/bh-php/archive/master.zip) and unpack to `./vendor/bem/bh` path (or any path you want).
+Or just download [the latest version](https://github.com/bem/bh-php/archive/master.zip) and unpack to `./vendor/bem/bh` path (or any path you want).
 
 And use in your code:
 ```php
@@ -173,4 +173,4 @@ Look at more examples in [README.md](https://github.com/bem/bh/blob/master/READM
 
 ## License
 
-MIT
+[The MIT Licence](LICENSE).
