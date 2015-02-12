@@ -231,6 +231,12 @@ class bhToHtmlModsTest extends PHPUnit_Framework_TestCase {
             $this->bh->apply(['block' => 'button'])
         );
     }
+
+    function test_it_should_not_ignore_zero_mods () {
+        $this->assertEquals(
+            '<div class="button button_zero_0"></div>',
+            $this->bh->apply(['block' => 'button', 'mods' => ['zero' => 0]]));
+    }
 }
 
 class bhToHtmlMixTest extends PHPUnit_Framework_TestCase {

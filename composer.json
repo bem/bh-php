@@ -32,7 +32,7 @@
     },
     "scripts": {
         "cov-install": "composer require -n phpunit/php-code-coverage:~2.0@stable satooshi/php-coveralls:~0.6@stable --dev && mkdir -p build/logs",
-        "cov": "phpunit --coverage-clover ./build/logs/clover.xml && COVERALLS_RUN_LOCALLY=1 COVERALLS_REPO_TOKEN=1 coveralls -v --ansi --dry-run",
+        "cov": "phpunit --coverage-clover ./build/logs/clover.xml --coverage-html build/report && COVERALLS_RUN_LOCALLY=1 COVERALLS_REPO_TOKEN=1 coveralls -v --ansi --dry-run",
         "test": "phpunit"
     },
     "archive": {

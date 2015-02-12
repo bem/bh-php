@@ -238,12 +238,12 @@ class BH {
         $res[] = 'switch ($json->block ?: __undefined) {';
         $declByBlock = static::groupBy($declarations, 'block');
         foreach ($declByBlock as $blockName => $blockData) {
-            $res[] = 'case "' . static::strEscape($blockName) . '":';
+            $res[] = 'case "' . $blockName . '":';
 
             $res[] = '  switch ($json->elem ?: __undefined) {';
             $declsByElem = static::groupBy($blockData, 'elem');
             foreach ($declsByElem as $elemName => $decls) {
-                $elemCase = $elemName === __undefined ? '__undefined' : '"' . static::strEscape($elemName) . '"';
+                $elemCase = $elemName === __undefined ? '__undefined' : '"' . $elemName . '"';
                 $res[] = '  case ' . $elemCase . ':';
 
                 foreach ($decls as $decl) {
@@ -251,16 +251,16 @@ class BH {
                     $conds = [];
                     $conds[] = ('!isset($json->__m[' . $__id . '])');
                     if (isset($decl['elemMod'])) {
-                        $modKey = static::strEscape($decl['elemMod']);
+                        $modKey = $decl['elemMod'];
                         $conds[] = (
                             'isset($json->mods) && $json->mods->{"' . $modKey . '"} === ' .
-                                ($decl['elemModVal'] === true ? 'true' : '"' . static::strEscape($decl['elemModVal']) . '"'));
+                                ($decl['elemModVal'] === true ? 'true' : '"' . $decl['elemModVal'] . '"'));
                     }
                     if (isset($decl['blockMod'])) {
-                        $modKey = static::strEscape($decl["blockMod"]);
+                        $modKey = $decl["blockMod"];
                         $conds[] = (
                             'isset($json->blockMods) && $json->blockMods->{"' . $modKey . '"} === ' .
-                                ($decl['blockModVal'] === true ? 'true' : '"' . static::strEscape($decl['blockModVal']) . '"'));
+                                ($decl['blockModVal'] === true ? 'true' : '"' . $decl['blockModVal'] . '"'));
                     }
 
                     $res[] = ('    if (' . join(' && ', $conds) . ') {');
@@ -486,7 +486,7 @@ class BH {
         }
 
         if (is_scalar($json)) {
-            return $this->_optEscapeContent ? $this->xmlEscape($json) : $json;
+            return $this->_optEscapeContent ? self::xmlEscape($json) : $json;
         }
 
         if (isList($json)) {
@@ -617,16 +617,14 @@ class BH {
     }
 
     public static function attrEscape($s) {
-        if (!is_string($s)) {
-            if (is_bool($s)) {
-                return $s ? 'true' : 'false';
-            }
+        if (is_bool($s)) {
+            return $s ? 'true' : 'false';
         }
         return htmlspecialchars($s, ENT_QUOTES);
     }
 
     public static function strEscape($s) {
-        return str_replace(array('\\', '"'), array('\\\\', '\\"'), $s);
+        return str_replace('\\', '\\\\', str_replace('"', '\\"', $s));
     }
 
     public static function toBemCssClasses($json, $base, $parentBase = null) {
@@ -644,7 +642,7 @@ class BH {
             ($json->elem && isset($json->elemMods) ? $json->elemMods : null);
         if ($mods) {
             foreach ($mods as $k => $mod) {
-                if ($mod) {
+                if ($mod || $mod === 0) {
                     $res .= ' ' . $base . '_' . $k . ($mod === true ? '' : '_' . $mod);
                 }
             }
