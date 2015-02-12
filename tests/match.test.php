@@ -90,6 +90,35 @@ class bhMatchTest extends PHPUnit_Framework_TestCase {
         );
     }
 
+    function it_should_match_new_mods () {
+        $this->bh->match('button_disabled', function($ctx) {
+            $ctx->tag('span');
+        });
+        $this->bh->match('button', function($ctx) {
+            $ctx->mod('disabled', true);
+            $ctx->applyBase();
+        });
+        $this->assertEquals(
+            '<span class="button button_disabled"></span>',
+            $this->bh->apply([ 'block' => 'button' ]));
+    }
+
+    function it_should_match_new_mods2 () {
+        $this->bh->match('button_visible', function($ctx) {
+            $ctx->tag('a');
+        });
+        $this->bh->match('button_disabled', function($ctx) {
+            $ctx->mod('visible', true);
+            $ctx->mix([ 'block' => 'clearfix' ]);
+        });
+        $this->bh->match('button', function($ctx) {
+            $ctx->mod('disabled', true);
+        });
+        $this->assertEquals(
+            '<a class="button button_disabled button_visible clearfix"></a>',
+            $this->bh->apply([ 'block' => 'button', 'mods' => [ 'disabled' => true ] ]));
+    }
+
     function test_it_should_not_fail_on_non_identifier_mods () {
         $this->bh->match('button_is-bem_yes__control', function ($ctx) {
             $ctx->content('Hello');
@@ -174,5 +203,33 @@ class bhMatchTest extends PHPUnit_Framework_TestCase {
             '<div class="button"><div class="button__control"></div></div>',
             $this->bh->apply(['block' => 'button'])
         );
+    }
+
+    function test_it_should_recursively_call_matchers () {
+        $this->bh->match('X__x', function ($ctx, $json) {
+            $ctx->bem(false);
+            $ctx->tag('b');
+        });
+        $this->bh->match('X__x', function ($ctx, $json) {
+            if (!key_exists('r', $json)) {
+                return;
+            }
+            $r = $json->r;
+            if ($r === true) {
+                $url = $json->url;
+                return array_map(function ($v) use ($url) {
+                    return [ 'elem' => 'x', 'r' => 'R' . $v ];
+                }, [1, 2, 3]);
+            } else {
+                return [
+                    '(' . $r . ')',
+                    $json,
+                    '(/' . $r . ')'
+                ];
+            }
+        });
+        $this->assertEquals(
+            '(R1)<b></b>(/R1)(R2)<b></b>(/R2)(R3)<b></b>(/R3)',
+            $this->bh->apply(['block' => 'X', 'elem' => 'x', 'r' => true]));
     }
 }
