@@ -51,7 +51,7 @@ class BH {
      * @var array
      */
     protected $_options = [];
-    protected $_optJsAttrName = 'onclick';
+    protected $_optJsAttrName = 'data-bem';
     protected $_optJsAttrIsJs = true;
     protected $_optEscapeContent = false;
 
@@ -565,7 +565,7 @@ class BH {
                         $this->attrEscape(str_replace('[]', '{}',
                             json_encode($jsParams, JSON_UNESCAPED_UNICODE)));
                     $attrs .= ' ' . (key_exists('jsAttr', $json) ? $json->jsAttr : $this->_optJsAttrName) . '="' .
-                        ($this->_optJsAttrIsJs ? 'return ' . $jsData : $jsData) . '"';
+                        ($this->_optJsAttrIsJs && $this->_optJsAttrName === 'onclick' ? 'return '. $jsData : $jsData) . '"';
                 }
             }
 
