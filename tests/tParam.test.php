@@ -71,24 +71,4 @@ class tParamTest extends PHPUnit_Framework_BHTestCase {
         });
         $this->bh->apply(['block' => 'button', 'content' => ['elem' => 'control']]);
     }
-
-
-    // php specific tests
-
-    function test_itShouldPassParamsByReference () {
-        $this->bh->match('button', function ($ctx) {
-            // last again without
-            $this->assertEquals(['baz' => 1, 'bar' => 3], $ctx->tParam('foo'));
-        });
-        $this->bh->match('button', function ($ctx) {
-            // second - with ref
-            $foo =& $ctx->tParamRef('foo');
-            $foo['bar'] = $foo['baz'] + 2;
-        });
-        $this->bh->match('button', function ($ctx) {
-            // first - set without ref
-            $ctx->tParam('foo', ['baz' => 1]);
-        });
-        $this->bh->apply(['block' => 'button']);
-    }
 }
