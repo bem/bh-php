@@ -278,17 +278,31 @@ class BH {
         }
         $res[] = ('}');
         $res[] = ('};');
-        $res = "return function (\$ms) {\n" . join("\n", $res) . "\n};";
+
+        return "return function (\$ms) {\n" . join("\n", $res) . "\n};";
+    }
+
+    function initMatcher () {
+        //$constructor = include_once "./bh-matcher.php";
+        //var_dump($constructor);
+        //var_dump($this->_matchers);
+        $fn = $this->buildMatcher();
+        //file_put_contents('www', var_export($this->_matchers, 1));
+        //die;
 
         // debugging purposes only (!!!)
+        // $debug = false; //true;
         // if ($debug) {
-        //   file_put_contents("./tmp/bh-matcher.php", "<?php\n" . $res);
-        //   $constructor = include("./tmp/bh-matcher.php");
+        //    file_put_contents("./bh-matcher.php", "<?php\n" . $fn);
+        //    $constructor = include("./bh-matcher.php");
         // } else {
-        $constructor = eval($res);
-        // }
+            $constructor = eval($fn);
+        //}//*/
 
-        return $constructor;
+        $this->_fastMatcher = [
+            '__processCounter' => 0,
+            'fn' => $constructor($this->_matchers)
+        ];
     }
 
     /**
@@ -352,11 +366,7 @@ class BH {
 
         // var compiledMatcher = (this._fastMatcher || (this._fastMatcher = Function('ms', this.buildMatcher())(this._matchers)));
         if (empty($this->_fastMatcher)) {
-            $fn = $this->buildMatcher();
-            $this->_fastMatcher = [
-                '__processCounter' => 0,
-                'fn' => $fn($this->_matchers)
-            ];
+            $this->initMatcher();
         }
         $compiledMatcher = $this->_fastMatcher;
 
