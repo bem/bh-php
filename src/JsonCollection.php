@@ -4,11 +4,18 @@ namespace BEM;
 
 require_once "helpers.php";
 
-class JsonCollection extends \ArrayObject {
+class JsonCollection extends \ArrayObject implements \JsonSerializable {
 
-    public function __construct ($a) {
-        parent::__construct($a);
+    public function __construct($input = []) {
+        parent::__construct($input, \ArrayObject::ARRAY_AS_PROPS);
         $this->_updateIndexes();
+    }
+
+    // JsonSerializable
+    public function jsonSerialize() {
+        echo 'serializing' . PHP_EOL;
+        var_dump($this->getArrayCopy());
+        return $this->getArrayCopy();
     }
 
     public function append ($obj) {

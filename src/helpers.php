@@ -18,6 +18,7 @@ function weakjson_decode($s) {
  */
 function isList ($a) {
     return is_array($a) && (isset($a[0]) || empty($a) || array_key_exists(0, $a))
+        || $a instanceof JsonCollection
         || $a instanceof \ArrayObject && (isset($a[0]) || !count($a) || array_key_exists(0, $a));
 }
 
