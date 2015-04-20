@@ -13,8 +13,34 @@ class Json {
     /** @var string */
     public $elem;
 
+    /** @var JsonCollection */
+    public $mix;
+
     /** @var mixed */
     public $content;
+
+
+    /** @var string */
+    public $tag;
+
+    /** @var string */
+    public $html;
+
+    /** @var array|object */
+    public $js;
+
+    /** @var string */
+    public $jsAttr;
+
+    /** @var mixed */
+    public $bem;
+
+    /** @var string */
+    public $cls;
+
+    /** @var array */
+    public $attrs;
+
 
     /** @var Mods */
     protected $mods;
@@ -23,33 +49,26 @@ class Json {
     /** @var Mods */
     protected $elemMods;
 
-    /** @var array */
-    public $attrs;
-
     public $_stop = false;
-    public $__m = [];
+    public $_matcherCalls = 0;
+    public $_m = [];
 
     /**
      * Constructor
      * @param array|object $node
      */
     public function __construct ($node) {
-        if (is_object($node)) {
-            $node = (array)($node);
-        }
-        elseif (!is_array($node)) {
+        if (!is_array($node)) {
             throw new \Exception('Incorrect data for Json creation');
         }
 
-        $this->block    = isset($node['block']) ? $node['block'] : null;
-        $this->elem     = isset($node['elem']) ? $node['elem'] : null;
         $this->setContent(isset($node['content'])? $node['content'] : null);
         $this->mods     = isset($node['mods']) ? new Mods($node['mods']) : null;
         $this->elemMods = isset($node['elemMods']) ? new Mods($node['elemMods']) : null;
 
         isset($node['mix']) && ($this->mix = JsonCollection::normalize($node['mix']));
 
-        unset($node['block'], $node['elem'], $node['content'], $node['mods'], $node['elemMods'], $node['mix']);
+        unset($node['content'], $node['mods'], $node['elemMods'], $node['mix']);
 
         // param
         foreach ($node as $k => $v) {
