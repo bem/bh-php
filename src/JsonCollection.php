@@ -7,7 +7,7 @@ require_once "helpers.php";
 class JsonCollection extends \ArrayObject implements \JsonSerializable {
 
     public function __construct($input = []) {
-        parent::__construct($input, \ArrayObject::ARRAY_AS_PROPS);
+        parent::__construct($input);
         $this->_updateIndexes();
     }
 
@@ -19,7 +19,7 @@ class JsonCollection extends \ArrayObject implements \JsonSerializable {
     }
 
     public function append ($obj) {
-        if (isList($obj) || $obj instanceof \Iterator) {
+        if ($obj instanceof \Iterator || isList($obj)) {
             // rollup lists
             foreach ($obj as $item) {
                 // filter empty arrays inside
@@ -51,6 +51,10 @@ class JsonCollection extends \ArrayObject implements \JsonSerializable {
      */
     public static function normalize ($bemJson) {
         switch (true) {
+            // instance of JsonCollection
+            case $bemJson instanceof self:
+                return $bemJson;
+
             // casual list
             case isList($bemJson);
                 $bemJson = static::flattenList($bemJson);
@@ -67,12 +71,8 @@ class JsonCollection extends \ArrayObject implements \JsonSerializable {
                 $ret = [static::normalizeItem($bemJson)];
                 break;
 
-            // instance of JsonCollection
-            case is_object($bemJson) && ($bemJson instanceof self):
-                return $bemJson;
-
             // instance of Json
-            case is_object($bemJson) && ($bemJson instanceof Json):
+            case $bemJson instanceof Json:
                 $ret = [$bemJson];
                 break;
 
@@ -129,22 +129,24 @@ class JsonCollection extends \ArrayObject implements \JsonSerializable {
             for ($i = 0, $l = sizeof($a); $i < $l; $i++) {
                 if (isList($a[$i])) {
                     $flatten = true;
+                    break;
                 }
             }
-            if ($flatten) {
-                $res = [];
-                for ($i = 0; $i < $l; $i++) {
-                    if (!isList($a[$i])) {
-                        // filter empty arrays inside
-                        if (!(is_array($a[$i]) && empty($a[$i]))) {
-                            $res[] = $a[$i];
-                        }
-                    } else {
-                        $res = array_merge($res, (array)$a[$i]);
+            if (!$flatten) {
+                break;
+            }
+            $res = [];
+            for ($i = 0; $i < $l; $i++) {
+                if (!isList($a[$i])) {
+                    // filter empty arrays inside
+                    if (!(is_array($a[$i]) && empty($a[$i]))) {
+                        $res[] = $a[$i];
                     }
+                } else {
+                    $res = array_merge($res, (array)$a[$i]);
                 }
-                $a = $res;
             }
+            $a = $res;
         } while ($flatten);
 
         return $a;

@@ -174,19 +174,6 @@ class Context {
         return null;
     }
 
-    // fallback for explicit values? (Fatal error: Cannot pass parameter 2 by reference)
-    function &tParamRef ($key) {
-        $node = $this->node;
-        while ($node) {
-            if (isset($node->tParams[$key])) {
-                return $node->tParams[$key];
-            }
-            $node = $node->parentNode;
-        }
-        $_ = null;
-        return $_;
-    }
-
     /**
      * Применяет матчинг для переданного фрагмента BEMJSON.
      * Возвращает результат преобразований.
@@ -234,8 +221,8 @@ class Context {
         $block = $json->block;
         $blockMods = $json->blockMods;
 
-        $fm = $this->bh->_fastMatcher;
-        $subRes = $fm['fn']($this, $json);
+        $fm = $this->bh->getMatcher();
+        $subRes = $fm($this, $json);
         if ($subRes !== null) {
             $this->ctx = $node->arr[$node->index] = $node->json = JsonCollection::normalize($subRes);
             $node->blockName = $block; // need check
@@ -345,10 +332,10 @@ class Context {
      */
     function tag ($tagName = null, $force = false) {
         if ($tagName === null) {
-            return isset($this->ctx->tag) ? $this->ctx->tag : null;
+            return $this->ctx->tag;
         }
 
-        if (empty($this->ctx->tag) || $force) {
+        if ($this->ctx->tag === null || $force) {
             $this->ctx->tag = $tagName;
         }
 
@@ -374,10 +361,10 @@ class Context {
      */
     function mix ($mix = null, $force = false) {
         if ($mix === null) {
-            return key_exists('mix', $this->ctx) ? $this->ctx->mix : null;
+            return $this->ctx->mix;
         }
 
-        if ($force || !key_exists('mix', $this->ctx)) {
+        if ($force || !$this->ctx->mix) {
             $this->ctx->mix = JsonCollection::normalize($mix);
             return $this;
         }
@@ -471,13 +458,13 @@ class Context {
      */
     function js ($js = null, $force = false) {
         if (func_num_args() === 0) {
-            return key_exists('js', $this->ctx) ? $this->ctx->js : null;
+            return $this->ctx->js;
         }
 
         // this.ctx.js = force ?
         //     (js === true ? {} : js) :
         //     js ? this.extend(this.ctx.js, js) : this.ctx.js;
-        $this->ctx->js = !key_exists('js', $this->ctx) || $force ?
+        $this->ctx->js = $this->ctx->js === null || $force ?
             ($js === true ? [] : $js) :
             ((is_array($this->ctx->js) ? $this->ctx->js : []) + ($js && is_array($js) ? $js : []));
 
@@ -571,10 +558,10 @@ class Context {
      */
     function html ($value = null, $force = false) {
         if (func_num_args() === 0) {
-            return key_exists('html', $this->ctx) ? $this->ctx->html : null;
+            return $this->ctx->html;
         }
 
-        $this->ctx->html = !key_exists('html', $this->ctx) || $force ? $value : $this->ctx->html;
+        $this->ctx->html = is_null($this->ctx->html) || $force ? $value : $this->ctx->html;
 
         return $this;
     }
