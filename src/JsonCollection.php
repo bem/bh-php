@@ -4,7 +4,7 @@ namespace BEM;
 
 require_once "helpers.php";
 
-class JsonCollection extends \ArrayObject {
+class JsonCollection extends \ArrayObject implements \JsonSerializable {
 
     public function __construct ($a) {
         parent::__construct($a);
@@ -143,4 +143,9 @@ class JsonCollection extends \ArrayObject {
         return $a;
     }
 
+    public function jsonSerialize () {
+        return array_filter($this->getArrayCopy(), function ($el) {
+            return $el !== null && $el !== false;
+        });
+    }
 }

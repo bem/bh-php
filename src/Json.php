@@ -5,7 +5,7 @@ namespace BEM;
 /**
  * BemJson node context
  */
-class Json {
+class Json implements \JsonSerializable {
 
     /** @var string */
     public $block;
@@ -117,4 +117,16 @@ class Json {
         }
     }*/
 
+    public function jsonSerialize () {
+        $res = (array)$this;
+        $res['mods'] = $this->mods;
+        $res['elemMods'] = $this->elemMods;
+
+        unset($res['_stop'], $res['__m'],
+            $res["\0*\0mods"], $res["\0*\0elemMods"], $res["\0*\0blockMods"]);
+
+        return array_filter($res, function ($el) {
+            return $el !== null;
+        });
+    }
 }
