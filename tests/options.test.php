@@ -52,4 +52,40 @@ class optionsTestJsAttr extends PHPUnit_Framework_TestCase {
             $this->bh->apply(['block' => 'button', 'js' => true]));
     }
 
+    function test_it_should_use_jsCls_option () {
+        $this->bh->setOptions([ 'jsCls' => 'js' ]);
+        $this->assertEquals(
+            '<div class="button js" onclick="return {&quot;button&quot;:{}}"></div>',
+            $this->bh->apply([ 'block' => 'button', 'js' => true ])
+        );
+    }
+
+    function test_it_should_use_empty_jsCls_option () {
+        $this->bh->setOptions([ 'jsCls' => false ]);
+        $this->assertEquals(
+            '<div class="button" onclick="return {&quot;button&quot;:{}}"></div>',
+            $this->bh->apply([ 'block' => 'button', 'js' => true ])
+        );
+    }
+
+    function test_it_should_use_clsNobaseMods_options () {
+        $this->bh->setOptions([ 'clsNobaseMods' => true ]);
+        $this->assertEquals(
+            '<div class="button _disabled _theme_new clearfix button__box _pick_left">' .
+                '<div class="button__control _disabled"></div>' .
+            '</div>',
+            $this->bh->apply([
+                'block' => 'button',
+                'mods' => [ 'disabled' => true, 'theme' => 'new' ],
+                'mix' => [
+                    [ 'block' => 'clearfix' ],
+                    [ 'elem' => 'box', 'elemMods' => [ 'pick' => 'left' ] ]
+                ],
+                'content' => [
+                    'elem' => 'control',
+                    'elemMods' => [ 'disabled' => true ]
+                ]
+            ])
+        );
+    }
 }

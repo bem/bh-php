@@ -13,12 +13,16 @@ class modTest extends PHPUnit_Framework_TestCase {
 
     function test_it_should_return_mod () {
         $this->bh->match('button', function ($ctx) {
-            $this->assertEquals(
-                'button',
-                $ctx->mod('type')
-            );
+            $this->assertEquals('button', $ctx->mod('type'));
         });
         $this->bh->apply(['block' => 'button', 'mods' => ['type' => 'button']]);
+    }
+
+    function test_it_should_return_elem_mod () {
+        $this->bh->match('button__control', function($ctx) {
+            $this->assertEquals('button', $ctx->mod('type'));
+        });
+        $this->bh->apply([ 'block' => 'button', 'elem' => 'control', 'mods' => [ 'type' => 'button' ] ]);
     }
 
     function test_it_should_return_null_mod () {

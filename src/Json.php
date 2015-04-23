@@ -45,8 +45,6 @@ class Json {
     /** @var Mods */
     protected $mods;
     /** @var Mods */
-    protected $blockMods;
-    /** @var Mods */
     protected $elemMods;
 
     public $_stop = false;
@@ -82,7 +80,7 @@ class Json {
     }
 
     public function __get ($name) {
-        if ($name === 'mods' || $name === 'blockMods' || $name === 'elemMods') {
+        if ($name === 'mods' || $name === 'elemMods') {
             if (is_null($this->$name)) {
                 $this->$name = new Mods();
             }
@@ -92,15 +90,16 @@ class Json {
     }
 
     public function __set ($name, $value) {
-        if ($name === 'mods' || $name === 'blockMods' || $name === 'elemMods') {
-            $this->$name = is_array($value) ? new Mods($value) : $value;
+        if ($name === 'mods' || $name === 'elemMods') {
+            $this->$name = empty($value) ? null
+                : is_array($value) ? new Mods($value) : $value;
         } else {
             $this->$name = $value;
         }
     }
 
     public function __isset ($name) {
-        if ($name === 'mods' || $name === 'blockMods' || $name === 'elemMods') {
+        if ($name === 'mods' || $name === 'elemMods') {
             return !empty($this->$name);
         }
         return isset($this->$name);

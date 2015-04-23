@@ -11,7 +11,7 @@ class positionTest extends PHPUnit_Framework_TestCase {
         $this->bh = new BH();
     }
 
-    function test_it_should_calc_position____ () {
+    function test_it_should_calc_position () {
         $this->bh->match('button__inner', function ($ctx) {
             $ctx->mod('pos', $ctx->position());
         });
@@ -27,7 +27,7 @@ class positionTest extends PHPUnit_Framework_TestCase {
             ])
         );
     }
-    function test_it_should_calc_position_with_array_mess_ () {
+    function test_it_should_calc_position_with_array_mess () {
         $this->bh->match('button__inner', function ($ctx) {
             $ctx->mod('pos', $ctx->position());
         });
@@ -46,7 +46,7 @@ class positionTest extends PHPUnit_Framework_TestCase {
             ])
         );
     }
-    function test_it_should_calc_position_for_single_element_ () {
+    function test_it_should_calc_position_for_single_element () {
         $this->bh->match('button__inner', function ($ctx) {
             $ctx->mod('pos', $ctx->position());
         });

@@ -7,8 +7,8 @@ class Step {
     public $json;
     public $arr;
     public $index;
-    public $blockName;
-    public $blockMods;
+    public $block;
+    public $mods;
     public $position;
     public $parentNode;
 
@@ -21,8 +21,8 @@ class Step {
         $this->json = $json;
         $this->arr = $arr;
         $this->index = $index;
-        $this->blockName = $blockName;
-        $this->blockMods = $blockMods;
+        $this->block = $blockName;
+        $this->mods = $blockMods;
         $this->position = $position;
         $this->parentNode = $parentNode;
     }

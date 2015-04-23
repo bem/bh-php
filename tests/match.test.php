@@ -90,7 +90,7 @@ class bhMatchTest extends PHPUnit_Framework_TestCase {
         );
     }
 
-    function it_should_match_new_mods () {
+    function test_it_should_match_new_mods () {
         $this->bh->match('button_disabled', function($ctx) {
             $ctx->tag('span');
         });
@@ -103,7 +103,7 @@ class bhMatchTest extends PHPUnit_Framework_TestCase {
             $this->bh->apply([ 'block' => 'button' ]));
     }
 
-    function it_should_match_new_mods2 () {
+    function test_it_should_match_new_mods2 () {
         $this->bh->match('button_visible', function($ctx) {
             $ctx->tag('a');
         });

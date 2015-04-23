@@ -25,6 +25,20 @@ class applyBaseTest extends PHPUnit_Framework_TestCase {
         );
     }
 
+    function test_it_should_apply_base_matcher_for_element () {
+        $this->bh->match('button__control', function ($ctx) {
+            $ctx->mod('type', 'span');
+            $ctx->applyBase();
+        });
+        $this->bh->match('button__control_type_span', function ($ctx) {
+            $ctx->tag('span');
+        });
+        $this->assertEquals(
+            '<span class="button__control button__control_disabled button__control_type_span"></span>',
+            $this->bh->apply([ 'block' => 'button', 'elem' => 'control', 'mods' => [ 'disabled' => true ] ])
+        );
+    }
+
     function test_it_should_apply_base_matcher_for_content () {
         $this->bh->match('button', function ($ctx) {
             $ctx->content([

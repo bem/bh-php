@@ -180,7 +180,7 @@ class Context {
      * @param BemJson $bemJson
      * @return array
      */
-    function apply ($bemJson) {
+    function process ($bemJson) {
         $prevCtx = $this->ctx;
         $prevNode = $this->node;
         $res = $this->bh->processBemJson($bemJson, $prevCtx->block);
@@ -214,19 +214,15 @@ class Context {
         $node = $this->node;
         $json = $node->json;
 
-        if (!$json->elem && isset($json->mods)) {
-            $json->blockMods = $json->mods;
-        }
-
         $block = $json->block;
-        $blockMods = $json->blockMods;
+        $blockMods = $json->mods;
 
         $fm = $this->bh->getMatcher();
         $subRes = $fm($this, $json);
         if ($subRes !== null) {
             $this->ctx = $node->arr[$node->index] = $node->json = JsonCollection::normalize($subRes);
-            $node->blockName = $block; // need check
-            $node->blockMods = $blockMods;
+            $node->block = $block; // need check
+            $node->mods = $blockMods;
         }
 
         return $this;
@@ -279,13 +275,14 @@ class Context {
      * @return string|null|Context
      */
     function mod ($key, $value = null, $force = false) {
+        $field = $this->ctx->elem ? 'elemMods' : 'mods';
         if (func_num_args() > 1) {
-            $mods = $this->ctx->mods;
+            $mods = $this->ctx->$field;
             $mods->$key = !key_exists($key, $mods) || $force ? $value : $mods->$key;
             return $this;
         }
-        return isset($this->ctx->mods) && key_exists($key, $this->ctx->mods)
-            ? $this->ctx->mods->$key : null;
+        return isset($this->ctx->$field) && key_exists($key, $this->ctx->$field)
+            ? $this->ctx->$field->$key : null;
     }
 
     /**
@@ -304,16 +301,15 @@ class Context {
      * @return array|Context
      */
     function mods ($values = null, $force = false) {
-        $mods = $this->ctx->mods;
+        $field = $this->ctx->elem ? 'elemMods' : 'mods';
+        $mods = $this->ctx->$field;
         if ($values === null) {
             return $mods;
         }
 
-        // d(compact('mods', 'values', 'force'));
-        $this->ctx->mods = $force ?
+        $this->ctx->$field = $force ?
             $this->extend($mods, $values) :
             $this->extend(is_object($values) ? $values : new Mods($values), $mods);
-        // d('res', $this->ctx->mods, "\n", (array)($this->ctx->mods));
 
         return $this;
     }

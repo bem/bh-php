@@ -9,25 +9,21 @@ class mixTest extends PHPUnit_Framework_TestCase {
      */
     function setupBhInstance () {
         $this->bh = new BH();
-        $this->blockMix = [['block' => 'mix']];
-        $this->blockMixJson = new JsonCollection([
-            new Json($this->blockMix[0])
-        ]);
     }
 
     function test_it_should_return_mix () {
         $this->bh->match('button', function ($ctx) {
             $this->assertEquals(
-                $this->blockMixJson,
+                JsonCollection::normalize(['block' => 'mix']),
                 $ctx->mix()
             );
         });
-        $this->bh->apply(['block' => 'button', 'mix' => $this->blockMix]);
+        $this->bh->apply(['block' => 'button', 'mix' => ['block' => 'mix']]);
     }
 
-    function test_it_should_set_mix () {
+    function test_it_should_set_single_mix () {
         $this->bh->match('button', function ($ctx) {
-            $ctx->mix($this->blockMix);
+            $ctx->mix(['block' => 'mix']);
         });
         $this->assertEquals(
             '<div class="button mix"></div>',
@@ -35,9 +31,9 @@ class mixTest extends PHPUnit_Framework_TestCase {
         );
     }
 
-    function test_it_should_set_single_mix () {
+    function test_it_should_set_array_mix () {
         $this->bh->match('button', function ($ctx) {
-            $ctx->mix(['block' => 'mix']);
+            $ctx->mix([['block' => 'mix']]);
         });
         $this->assertEquals(
             '<div class="button mix"></div>',
@@ -55,7 +51,7 @@ class mixTest extends PHPUnit_Framework_TestCase {
         );
     }
 
-    function test_it_should_extend_user_mix () {
+    function test_it_should_extend_user_array_mix () {
         $this->bh->match('button', function ($ctx) {
             $ctx->mix([['block' => 'mix']]);
         });
@@ -65,12 +61,12 @@ class mixTest extends PHPUnit_Framework_TestCase {
         );
     }
 
-    function test_it_should_extend_later_declarations___ () {
+    function test_it_should_extend_later_declarations () {
         $this->bh->match('button', function ($ctx) {
-            $ctx->mix([['block' => 'mix2']]);
+            $ctx->mix(['block' => 'mix2']);
         });
         $this->bh->match('button', function ($ctx) {
-            $ctx->mix([['block' => 'mix1']]);
+            $ctx->mix(['block' => 'mix1']);
         });
         $this->assertEquals(
             '<div class="button mix1 mix2"></div>',
@@ -80,10 +76,10 @@ class mixTest extends PHPUnit_Framework_TestCase {
 
     function test_it_should_override_later_declarations_with_force_flag () {
         $this->bh->match('button', function ($ctx) {
-            $ctx->mix([['block' => 'mix2']], true);
+            $ctx->mix(['block' => 'mix2'], true);
         });
         $this->bh->match('button', function ($ctx) {
-            $ctx->mix([['block' => 'mix1']]);
+            $ctx->mix(['block' => 'mix1']);
         });
         $this->assertEquals(
             '<div class="button mix2"></div>',
@@ -93,11 +89,11 @@ class mixTest extends PHPUnit_Framework_TestCase {
 
     function test_it_should_override_user_declarations_with_force_flag () {
         $this->bh->match('button', function ($ctx) {
-            $ctx->mix([['block' => 'mix']], true);
+            $ctx->mix(['block' => 'mix'], true);
         });
         $this->assertEquals(
             '<div class="button mix"></div>',
-            $this->bh->apply(['block' => 'button', 'mix' => [['block' => 'user-mix']]])
+            $this->bh->apply(['block' => 'button', 'mix' => ['block' => 'user-mix']])
         );
     }
 

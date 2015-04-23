@@ -30,6 +30,16 @@ class mods extends PHPUnit_Framework_TestCase {
         $this->bh->apply(['block' => 'button', 'mods' => ['type' => 'button']]);
     }
 
+    function test_it_should_return_elem_mods () {
+        $this->bh->match('button__control', function ($ctx) {
+            $this->assertEquals(
+                'button',
+                $ctx->mods()->type
+            );
+        });
+        $this->bh->apply([ 'block' => 'button', 'elem' => 'control', 'elemMods' => [ 'type' => 'button' ] ]);
+    }
+
     function test_it_should_return_boolean_mods () {
         $this->bh->match('button', function ($ctx) {
             $this->assertEquals(

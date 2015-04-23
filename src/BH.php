@@ -29,21 +29,25 @@ class BH {
      * Неймспейс для библиотек. Сюда можно писать различный функционал для дальнейшего использования в шаблонах.
      *
      * ```javascript
-     * bh.lib.objects = bh.lib.objects || [];
-     * bh.lib.objects.inverse = bh.lib.objects.inverse || function(obj) { ... };
+     * $bh->lib->i18n = BEM.I18N;
+     * $bh->lib->objects = bh.lib.objects || [];
+     * $bh->lib->objects.inverse = bh.lib.objects.inverse || function(obj) { ... };
      * ```
-     * @var array
+     * @var ArrayObject
      */
-    protected $lib = [];
+    public $lib;
 
     /**
      * Опции BH. Задаются через setOptions.
      * @var array
      */
     protected $_options = [];
+
     protected $_optJsAttrName = 'onclick';
     protected $_optJsAttrIsJs = true;
+    protected $_optJsCls = 'i-bem';
     protected $_optEscapeContent = false;
+    protected $_optNobaseMods = false;
 
     /**
      * Флаг, включающий автоматическую систему поиска зацикливаний. Следует использовать в development-режиме,
@@ -80,6 +84,7 @@ class BH {
      * @constructor
      */
     function __construct () {
+        $this->lib = new \ArrayObject([], \ArrayObject::ARRAY_AS_PROPS);
     }
 
     /**
@@ -100,15 +105,23 @@ class BH {
             $this->_options[$k] = $options[$k];
         }
 
-        if (!empty($options['jsAttrName'])) {
+        if (isset($options['jsAttrName'])) {
             $this->_optJsAttrName = $options['jsAttrName'];
         }
 
-        if (!empty($options['jsAttrScheme'])) {
+        if (isset($options['jsAttrScheme'])) {
             $this->_optJsAttrIsJs = $options['jsAttrScheme'] === 'js';
         }
 
-        if (!empty($options['escapeContent'])) {
+        if (isset($options['jsCls'])) {
+            $this->_optJsCls = $options['jsCls'];
+        }
+
+        if (isset($options['clsNobaseMods'])) {
+            $this->_optNobaseMods = true;
+        }
+
+        if (isset($options['escapeContent'])) {
             $this->_optEscapeContent = $options['escapeContent'];
         }
 
@@ -214,6 +227,52 @@ class BH {
     }
 
     /**
+     * Объявляет глобальный шаблон, применяемый перед остальными.
+     *
+     * ```php
+     * $bh->beforeEach(function ($ctx, $json) {
+     *     $ctx->attr('onclick', $json->counter);
+     * });
+     * ```
+     *
+     * @param Closure $matcher
+     * @return BH
+     */
+    function beforeEach ($matcher) {
+        return $this->match('$before', $matcher);
+    }
+
+    /**
+     * Объявляет глобальный шаблон, применяемый после остальных.
+     *
+     * ```php
+     * $bh->afterEach(function ($ctx) {
+     *     $ctx->tag('xdiv');
+     * });
+     * ```
+     *
+     * @param Closure $matcher
+     * @return BH
+     */
+    function afterEach ($matcher) {
+        return $this->match('$after', $matcher);
+    }
+
+    /**
+     * Вставляет вызов шаблона в очередь вызова.
+     *
+     * @param Array $res
+     * @param String $fnId
+     * @param Number $index
+     */
+    static protected function pushMatcher(&$res, $fnId, $index) {
+        $res[] = ('      $json->_m[' . $fnId . '] = true;');
+        $res[] = ('      $subRes = $ms[' . $index . ']["fn"]($ctx, $json);');
+        $res[] = ('      if ($subRes !== null) { return ($subRes ?: ""); }');
+        $res[] = ('      if ($json->_stop) return;');
+    }
+
+    /**
      * Вспомогательный метод для компиляции шаблонов с целью их быстрого дальнейшего исполнения.
      * @return string
      */
@@ -233,8 +292,19 @@ class BH {
 
         $res[] = 'return function ($ctx, $json) use ($ms) {';
 
-        $res[] = 'switch ($json->block ?: __undefined) {';
         $declByBlock = static::groupBy($declarations, 'block');
+
+        if (isset($declByBlock['$before'])) {
+            foreach ($declByBlock['$before'] as $decl) {
+                static::pushMatcher($res, $decl['__id'], $decl['index']);
+            }
+        }
+
+        $afterEach = isset($declByBlock['$after']) ? $declByBlock['$after'] : null;
+        unset($declByBlock['$before'], $declByBlock['$after']);
+
+        if ($declByBlock) :
+        $res[] = 'switch ($json->block ?: __undefined) {';
         foreach ($declByBlock as $blockName => $blockData) {
             $res[] = 'case "' . $blockName . '":';
 
@@ -251,30 +321,35 @@ class BH {
                     if (isset($decl['elemMod'])) {
                         $modKey = $decl['elemMod'];
                         $conds[] = (
-                            'isset($json->mods) && $json->mods->{"' . $modKey . '"} === ' .
+                            'isset($json->elemMods) && $json->elemMods->{"' . $modKey . '"} === ' .
                                 ($decl['elemModVal'] === true ? 'true' : '"' . $decl['elemModVal'] . '"'));
                     }
                     if (isset($decl['blockMod'])) {
                         $modKey = $decl["blockMod"];
                         $conds[] = (
-                            'isset($json->blockMods) && $json->blockMods->{"' . $modKey . '"} === ' .
+                            'isset($json->mods) && $json->mods->{"' . $modKey . '"} === ' .
                                 ($decl['blockModVal'] === true ? 'true' : '"' . $decl['blockModVal'] . '"'));
                     }
 
                     $res[] = ('    if (' . join(' && ', $conds) . ') {');
-                    $res[] = ('      $json->_m[' . $__id . '] = true;');
-                    $res[] = ('      $subRes = $ms[' . $decl['index'] . ']["fn"]($ctx, $json);');
-                    $res[] = ('      if ($subRes !== null) { return ($subRes ?: ""); }');
-                    $res[] = ('      if ($json->_stop) return;');
+                    static::pushMatcher($res, $__id, $decl['index']);
                     $res[] = ('    }');
                 }
 
-                $res[] = ('    return;');
+                $res[] = ('    break;');
             }
             $res[] = ('}');
-            $res[] = ('  return;');
+            $res[] = ('  break;');
         }
         $res[] = ('}');
+        endif;
+
+        if ($afterEach) {
+            foreach ($afterEach as $decl) {
+                static::pushMatcher($res, $decl['__id'], $decl['index']);
+            }
+        }
+
         $res[] = ('};');
 
         return "return function (\$ms) {\n" . join("\n", $res) . "\n};";
@@ -287,17 +362,13 @@ class BH {
         if ($this->_matcher) return $this->_matcher;
 
         // debugging purposes only (!!!)
-        // $debug = false; //true;
-
         // $key = md5(join('|', array_map(function ($e) { return $e['expr']; }, $this->_matchers)));
         // $file = "./tmp/bh-matchers-{$key}.php";
         // $constructor = @include $file;
         // if (!$constructor) {
-        // if ($debug) {
             $code = $this->buildMatcher();
-            // file_put_contents($file, "<?php\n" . $code);
-            // file_put_contents("./bh-matcher.php", "<?php\n" . $fn);
-            // $constructor = include("./bh-matcher.php");
+        //     file_put_contents($file, "<?php\n" . $code);
+        //     $constructor = include $file;
             $constructor = eval($code);
         // }
 
@@ -348,10 +419,6 @@ class BH {
         }
 
         $bemJson = $resultArr[0];
-        $blockMods = null;
-        if ($bemJson instanceof Json) {
-            $blockMods = (!$bemJson->elem && isset($bemJson->mods)) ? $bemJson->mods : $bemJson->blockMods;
-        }
 
         $steps = [];
         $steps[] = new Step(
@@ -359,7 +426,7 @@ class BH {
             $resultArr,
             0,
             $blockName,
-            $blockMods
+            null
         );
 
         // var compiledMatcher = (this._fastMatcher || (this._fastMatcher = Function('ms', this.buildMatcher())(this._matchers)));
@@ -374,8 +441,8 @@ class BH {
         // js: while (node = nodes.shift()) {
         while ($step = array_shift($steps)) {
             $json = $step->json;
-            $blockName = $step->blockName;
-            $blockMods = $step->blockMods;
+            $blockName = $step->block;
+            $blockMods = $step->mods;
 
             if ($json instanceof JsonCollection) {
                 $j = 0;
@@ -408,21 +475,19 @@ class BH {
                 continue;
 
             } elseif ($json->elem) {
-                $blockName = $json->block = isset($json->block) ? $json->block : $blockName;
-                // sync mods:
-                // blockMods = json.blockMods = json.blockMods || blockMods
-                $blockMods = $json->blockMods = isset($json->blockMods) ? $json->blockMods : $blockMods;
-                // sync elem mods:
-                if (isset($json->elemMods)) {
-                    $json->mods = $json->elemMods;
+                $blockName = $json->block = $json->block ?: $blockName;
+                if (!isset($json->elemMods)) {
+                    $json->elemMods = $json->mods;
+                    $json->mods = null;
                 }
+                $blockMods = $json->mods = isset($json->mods) ? $json->mods : $blockMods;
 
             } elseif ($json->block) {
                 $blockName = $json->block;
-                $blockMods = $json->blockMods = $json->mods;
+                $blockMods = $json->mods;
             }
 
-            if ($json && $json->block) {
+            if ($json instanceof Json) {
                 if ($infiniteLoopDetection) {
                     $json->_matcherCalls++;
                     $this->_matcherCalls++;
@@ -441,8 +506,8 @@ class BH {
                     if ($subRes !== null) {
                         $json = JsonCollection::normalize($subRes);
                         $step->json = $json;
-                        $step->blockName = $blockName;
-                        $step->blockMods = $blockMods;
+                        $step->block = $blockName;
+                        $step->mods = $blockMods;
                         $steps[] = $step;
                         $stopProcess = true;
                     }
@@ -451,34 +516,27 @@ class BH {
 
             if (!$stopProcess && $processContent && isset($json->content) && !is_scalar($json->content)) {
                 $content = $json->content;
-                //if ($content instanceof JsonCollection) {
 
-                    $j = 0;
-                    foreach ($content as $i => $child) {
-                        if (is_scalar($child) || empty($child)) {
-                            continue;
-                        }
-
-                        $steps[] = new Step(
-                            $child,
-                            $content,
-                            $i,
-                            $blockName,
-                            $blockMods,
-                            ++$j,
-                            $step
-                        );
+                $j = 0;
+                foreach ($content as $i => $child) {
+                    if (is_scalar($child) || empty($child)) {
+                        continue;
                     }
-                    $content->_listLength = $j;
 
-                /*} else {
-                    // commented since 24 nov '14
-                    // throw new \Exception('Do we need it?');
-                }*/
+                    $steps[] = new Step(
+                        $child,
+                        $content,
+                        $i,
+                        $blockName,
+                        $blockMods,
+                        ++$j,
+                        $step
+                    );
+                }
+                $content->_listLength = $j;
             }
         }
 
-        //d('processBemjson#' . ($_callId) . ' out ', $resultArr[0]);
         return $resultArr[0];
     }
 
@@ -528,14 +586,12 @@ class BH {
 
             $jsParams = false;
             if ($json->block) {
-                $cls = static::toBemCssClasses($json, $base);
+                $cls = static::toBemCssClasses($json, $base, null, $this->_optNobaseMods);
                 if ($json->js !== null && $json->js !== false) {
                     $jsParams = [];
                     $jsParams[$base] = $json->js === true ? [] : $this->_filterNulls($json->js);
                 }
             }
-
-            $addJSInitClass = $jsParams && !$json->elem;
 
             if ($json->mix) {
                 foreach ($json->mix as $mix) {
@@ -553,18 +609,17 @@ class BH {
                     $mixElem = $mix->elem ?: ($mix->block ? null : ($json->block ? $json->elem : null));
                     $mixBase = $mixBlock . ($mixElem ? '__' . $mixElem : '');
 
-                    $cls .= static::toBemCssClasses($mix, $mixBase, $base);
+                    $cls .= static::toBemCssClasses($mix, $mixBase, $base, $this->_optNobaseMods);
                     if ($mix->js !== null && $mix->js !== false) {
                         $jsParams = $jsParams ?: [];
                         $jsParams[$mixBase] = $mix->js === true ? [] : $this->_filterNulls($mix->js);
                         $hasMixJsParams = true;
-                        if (!$addJSInitClass) $addJSInitClass = ($mixBlock && !$mixElem);
                     }
                 }
             }
 
             if ($jsParams) {
-                if ($addJSInitClass) $cls .= ' i-bem';
+                if ($this->_optJsCls) $cls .= ' ' . $this->_optJsCls;
                 $jsData = !$hasMixJsParams && $json->js === true ?
                     '{&quot;' . $base . '&quot;:{}}' :
                     self::attrEscape(str_replace('[]', '{}',
@@ -610,7 +665,7 @@ class BH {
         return htmlspecialchars($s, ENT_QUOTES);
     }
 
-    public static function toBemCssClasses($json, $base, $parentBase = null) {
+    public static function toBemCssClasses($json, $base, $parentBase = null, $nobase = false) {
         $res = '';
 
         if ($parentBase !== $base) {
@@ -620,14 +675,11 @@ class BH {
             $res .= $base;
         }
 
-        // if (mods = json.mods || json.elem && json.elemMods)
-        $mods = isset($json->mods) ? $json->mods :
-            ($json->elem && isset($json->elemMods) ? $json->elemMods : null);
-        if ($mods) {
-            foreach ($mods as $k => $mod) {
-                if ($mod || $mod === 0) {
-                    $res .= ' ' . $base . '_' . $k . ($mod === true ? '' : '_' . $mod);
-                }
+        // if (mods = json.elem && json.elemMods || json.mods)
+        $mods = $json->elem && isset($json->elemMods) ? $json->elemMods : $json->mods;
+        foreach ($mods as $k => $mod) {
+            if ($mod || $mod === 0) {
+                $res .= ' ' . ($nobase ? '' : $base) . '_' . $k . ($mod === true ? '' : '_' . $mod);
             }
         }
 

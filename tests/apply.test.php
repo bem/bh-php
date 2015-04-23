@@ -2,7 +2,7 @@
 
 use BEM\BH;
 
-class applyTest extends PHPUnit_Framework_TestCase {
+class bhApplyTest extends PHPUnit_Framework_TestCase {
 
     /**
      * @before
@@ -24,40 +24,5 @@ class applyTest extends PHPUnit_Framework_TestCase {
         $this->assertEquals(
             '',
             $this->bh->apply(['block' => 'link']));
-    }
-
-    function test_it_should_return_valid_processed_element () {
-        $this->bh->match('button', function ($ctx) {
-            $inner = $ctx->apply(['block' => 'button', 'elem' => 'inner']);
-            // \BEM\d($inner);
-            $this->assertEquals($inner->tag, 'span');
-            $ctx->content($inner);
-        });
-        $this->bh->match('button__inner', function ($ctx) {
-            $ctx->tag('span');
-            // \BEM\d($ctx);
-        });
-        $this->assertEquals(
-            '<div class="button">' .
-                '<span class="button__inner"></span>' .
-            '</div>',
-            $this->bh->apply(['block' => 'button'])
-        );
-    }
-
-    function test_it_should_return_valid_processed_element_with_no_block_name () {
-        $this->bh->match('button', function ($ctx) {
-            $inner = $ctx->apply(['elem' => 'inner']);
-            $this->assertEquals($inner->tag, 'span');
-            $ctx->content($inner);
-        });
-        $this->bh->match('button__inner', function ($ctx) {
-            $ctx->tag('span');
-        });
-        $this->assertEquals(
-            '<div class="button">' .
-                '<span class="button__inner"></span>' .
-            '</div>',
-            $this->bh->apply(['block' => 'button']));
     }
 }
