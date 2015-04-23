@@ -372,10 +372,18 @@ class BH {
             $constructor = eval($code);
         // }
 
-        $this->_matcherCalls = 0;
-        $this->_matcher = $constructor($this->_matchers);
+        $this->warmUp($constructor);
 
         return $this->_matcher;
+    }
+
+    public function dumpFuel () {
+        return $this->buildMatcher();
+    }
+
+    public function warmUp (\Closure $constructor) {
+        $this->_matcherCalls = 0;
+        $this->_matcher = $constructor($this->_matchers);
     }
 
     /**
@@ -551,7 +559,7 @@ class BH {
         }
 
         if (is_scalar($json)) {
-            return $this->_optEscapeContent ? self::xmlEscape($json) : $json;
+            return $this->_optEscapeContent ? htmlspecialchars($json, ENT_NOQUOTES) : $json;
         }
 
         if (isList($json)) {
@@ -589,7 +597,7 @@ class BH {
                 $cls = static::toBemCssClasses($json, $base, null, $this->_optNobaseMods);
                 if ($json->js !== null && $json->js !== false) {
                     $jsParams = [];
-                    $jsParams[$base] = $json->js === true ? [] : $this->_filterNulls($json->js);
+                    $jsParams[$base] = $json->js === true ? [] : array_filter($json->js, 'sizeof');
                 }
             }
 
@@ -612,7 +620,7 @@ class BH {
                     $cls .= static::toBemCssClasses($mix, $mixBase, $base, $this->_optNobaseMods);
                     if ($mix->js !== null && $mix->js !== false) {
                         $jsParams = $jsParams ?: [];
-                        $jsParams[$mixBase] = $mix->js === true ? [] : $this->_filterNulls($mix->js);
+                        $jsParams[$mixBase] = $mix->js === true ? [] : array_filter($mix->js, 'sizeof');
                         $hasMixJsParams = true;
                     }
                 }
@@ -622,7 +630,7 @@ class BH {
                 if ($this->_optJsCls) $cls .= ' ' . $this->_optJsCls;
                 $jsData = !$hasMixJsParams && $json->js === true ?
                     '{&quot;' . $base . '&quot;:{}}' :
-                    self::attrEscape(str_replace('[]', '{}',
+                    static::attrEscape(str_replace('[]', '{}',
                         json_encode($jsParams, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)));
                 $attrs .= ' ' . ($json->jsAttr ?: $this->_optJsAttrName) . '="' .
                     ($this->_optJsAttrIsJs ? 'return ' . $jsData : $jsData) . '"';
@@ -631,7 +639,7 @@ class BH {
 
         $cls = (string)$cls;
         if ($json->cls !== null) {
-            $cls .= ($cls ? ' ' : '') . self::attrEscape($json->cls);
+            $cls .= ($cls ? ' ' : '') . static::attrEscape($json->cls);
         }
 
         $tag = $json->tag !== null ? $json->tag : 'div';
@@ -653,12 +661,7 @@ class BH {
         return $res;
     }
 
-    // todo: add encoding here
-    public static function xmlEscape($s) {
-        return htmlspecialchars($s, ENT_NOQUOTES);
-    }
-
-    public static function attrEscape($s) {
+    public static function attrEscape($s, $enc = null) {
         if (is_bool($s)) {
             return $s ? 'true' : 'false';
         }
@@ -676,10 +679,12 @@ class BH {
         }
 
         // if (mods = json.elem && json.elemMods || json.mods)
-        $mods = $json->elem && isset($json->elemMods) ? $json->elemMods : $json->mods;
-        foreach ($mods as $k => $mod) {
-            if ($mod || $mod === 0) {
-                $res .= ' ' . ($nobase ? '' : $base) . '_' . $k . ($mod === true ? '' : '_' . $mod);
+        $mods = $json->getMods();
+        if ($mods) {
+            foreach ($mods as $k => $mod) {
+                if ($mod || $mod === 0) {
+                    $res .= ' ' . ($nobase ? '' : $base) . '_' . $k . ($mod === true ? '' : '_' . $mod);
+                }
             }
         }
 
@@ -722,9 +727,4 @@ class BH {
         return $res;
     }
 
-    protected static function _filterNulls ($arr) {
-        return array_filter($arr, function ($e) {
-            return $e !== null;
-        });
-    }
 };

@@ -47,7 +47,7 @@ class Context {
      * @return boolean
      */
     function isSimple ($obj) {
-        return is_scalar($obj) || is_null($obj);
+        return is_scalar($obj) || null === $obj;
     }
 
     /**
@@ -530,10 +530,10 @@ class Context {
      */
     function content ($value = null, $force = false) {
         if (func_num_args() === 0) {
-            return !is_null($this->ctx->content) ? $this->ctx->content : null;
+            return $this->ctx->content;
         }
 
-        if (is_null($this->ctx->content) || $force) {
+        if ($this->ctx->content === null || $force) {
             $this->ctx->setContent($value);
         }
 
@@ -557,7 +557,7 @@ class Context {
             return $this->ctx->html;
         }
 
-        $this->ctx->html = is_null($this->ctx->html) || $force ? $value : $this->ctx->html;
+        $this->ctx->html = $this->ctx->html === null || $force ? $value : $this->ctx->html;
 
         return $this;
     }

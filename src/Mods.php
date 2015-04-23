@@ -9,11 +9,10 @@ class Mods {
      * @param array [$mods]
      */
     public function __construct ($mods = null) {
-        if (!$mods) {
-            return;
-        }
-        foreach ($mods as $k => $v) {
-            $this->$k = $v;
+        if ($mods) {
+            foreach ($mods as $k => $v) {
+                $this->$k = $v;
+            }
         }
     }
 

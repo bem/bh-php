@@ -75,13 +75,17 @@ class Json {
     }
 
     public function setContent ($content) {
-        $this->content = is_null($content) || is_scalar($content) ? $content
+        $this->content = $content === null || is_scalar($content) ? $content
             : JsonCollection::normalize($content);
+    }
+
+    public function getMods () {
+        return $this->elem && $this->elemMods ? $this->elemMods : $this->mods;
     }
 
     public function __get ($name) {
         if ($name === 'mods' || $name === 'elemMods') {
-            if (is_null($this->$name)) {
+            if ($this->$name === null) {
                 $this->$name = new Mods();
             }
             return $this->$name;
@@ -90,19 +94,14 @@ class Json {
     }
 
     public function __set ($name, $value) {
-        if ($name === 'mods' || $name === 'elemMods') {
-            $this->$name = empty($value) ? null
-                : is_array($value) ? new Mods($value) : $value;
-        } else {
-            $this->$name = $value;
-        }
+        $this->$name = empty($value) ? null
+            : ($name === 'mods' || $name === 'elemMods') && is_array($value) ? new Mods($value)
+            : $value;
     }
 
     public function __isset ($name) {
-        if ($name === 'mods' || $name === 'elemMods') {
-            return !empty($this->$name);
-        }
-        return isset($this->$name);
+        return isset($this->$name)
+            || ($name === 'mods' || $name === 'elemMods') && !empty($this->$name);
     }
 
 /*

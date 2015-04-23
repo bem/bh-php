@@ -12,14 +12,18 @@ class JsonCollection extends \ArrayObject {
     }
 
     public function append ($obj) {
-        if ($obj instanceof \Iterator || isList($obj)) {
+        if ($obj instanceof Json) {
+            parent::append($obj);
+
+        } elseif ($obj instanceof \Iterator || isList($obj)) {
             // rollup lists
             foreach ($obj as $item) {
                 // filter empty arrays inside
                 if (!(is_array($item) && empty($item))) {
-                    self::append($item);
+                    static::append($item);
                 }
             }
+
         } else {
             parent::append(JsonCollection::normalizeItem($obj));
         }
@@ -43,13 +47,24 @@ class JsonCollection extends \ArrayObject {
      * @return JsonCollection
      */
     public static function normalize ($bemJson) {
+        $isArr = is_array($bemJson);
+
         switch (true) {
+            // casual bemJson node (assoc array)
+            case $isArr && !key_exists('0', $bemJson):
+                $ret = empty($bemJson) ? [] : [new Json($bemJson)];
+                break;
+
+            case is_scalar($bemJson) || $bemJson === null:
+                $ret = [$bemJson];
+                break;
+
             // instance of JsonCollection
             case $bemJson instanceof self:
                 return $bemJson;
 
             // casual list
-            case isList($bemJson);
+            case $isArr && isList($bemJson);
                 $bemJson = static::flattenList($bemJson);
             case $bemJson instanceof \Iterator:
                 $content = [];
@@ -59,22 +74,8 @@ class JsonCollection extends \ArrayObject {
                 $ret = $content;
                 break;
 
-            // casual bemJson node
-            case is_array($bemJson):
-                $ret = [static::normalizeItem($bemJson)];
-                break;
-
             // instance of Json
             case $bemJson instanceof Json:
-                $ret = [$bemJson];
-                break;
-
-            // custom object (not array)
-            case is_object($bemJson):
-                $ret = [new Json($bemJson)];
-                break;
-
-            case is_scalar($bemJson):
                 $ret = [$bemJson];
                 break;
 
@@ -82,9 +83,7 @@ class JsonCollection extends \ArrayObject {
                 throw new \InvalidArgumentException('Passed variable is not an array or object or string');
         }
 
-        $res = new static($ret);
-
-        return $res;
+        return new static($ret);
     }
 
     /**
@@ -92,17 +91,11 @@ class JsonCollection extends \ArrayObject {
      * @return string|number|Json
      */
     public static function normalizeItem ($node) {
-        if (is_scalar($node) || is_null($node)) {
+        if (null === $node || is_scalar($node)) {
             return $node;
         }
         if ($node instanceof Json) {
             return $node;
-        }
-        if (is_object($node)) {
-            $node = (array)$node;
-        }
-        if (is_array($node) && empty($node)) {
-            return null;
         }
         return new Json($node);
     }
