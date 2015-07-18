@@ -68,6 +68,22 @@ class optionsTestJsAttr extends PHPUnit_Framework_TestCase {
         );
     }
 
+    function test_it_should_use_jsElem_option () {
+        $this->bh->setOptions([ 'jsElem' => false ]);
+        $this->assertEquals(
+           '<div class="button__box" onclick="return {&quot;button__box&quot;:{}}"></div>',
+            $this->bh->apply([ 'block' => 'button', 'elem' => 'box', 'js' => true ])
+        );
+    }
+
+    function test_it_should_use_jsElem_option_for_mixed_element () {
+        $this->bh->setOptions([ 'jsElem' => false ]);
+        $this->assertEquals(
+            '<div class="button__box icon__wrap" onclick="return {&quot;icon__wrap&quot;:{}}"></div>',
+            $this->bh->apply([ 'block' => 'button', 'elem' => 'box', 'mix' => [ 'block' => 'icon', 'elem' => 'wrap', 'js' => true ] ])
+        );
+    }
+
     function test_it_should_use_clsNobaseMods_options () {
         $this->bh->setOptions([ 'clsNobaseMods' => true ]);
         $this->assertEquals(

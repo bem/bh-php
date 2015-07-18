@@ -46,6 +46,7 @@ class BH {
     protected $_optJsAttrName = 'onclick';
     protected $_optJsAttrIsJs = true;
     protected $_optJsCls = 'i-bem';
+    protected $_optJsElem = true;
     protected $_optEscapeContent = false;
     protected $_optNobaseMods = false;
 
@@ -115,6 +116,10 @@ class BH {
 
         if (isset($options['jsCls'])) {
             $this->_optJsCls = $options['jsCls'];
+        }
+
+        if (isset($options['jsElem'])) {
+            $this->_optJsElem = $options['jsElem'];
         }
 
         if (isset($options['clsNobaseMods'])) {
@@ -541,31 +546,51 @@ class BH {
     }
 
     /**
+     * Buffer for toHtml
+     * @var String
+     */
+    protected $_buf = null;
+
+    /**
      * Превращает раскрытый BEMJSON в HTML.
      * @param BemJson $json
      * @return string
      */
     public function toHtml ($json) {
+        $this->_buf = '';
+        $this->_html($json);
+        $buf = $this->_buf;
+        unset($this->_buf);
+        return $buf;
+    }
+
+    public function _html ($json) {
         if (!$json) {
-            return (string)$json;
+            $this->_buf .= (string)$json;
+            return;
         }
 
         if (is_scalar($json)) {
-            return $this->_optEscapeContent ? self::xmlEscape($json) : $json;
+            $this->_buf .= $this->_optEscapeContent ? self::xmlEscape($json) : $json;
+            return;
         }
 
         if (isList($json)) {
-            $res = '';
             foreach ($json as $item) {
                 if ($item !== false && $item !== null) {
-                    $res .= $this->toHtml($item);
+                    $this->_html($item);
                 }
             }
-            return $res;
+            return;
         }
 
         if ($json->tag === false || $json->tag === '') {
-            return $json->content === null ? '' : $this->toHtml($json->content);
+            if ($json->html) {
+                $this->_buf .= $json->html;
+            } else {
+                $this->_html($json->content);
+            }
+            return;
         }
 
         $cls = '';
@@ -574,10 +599,18 @@ class BH {
 
         if (!empty($json->attrs)) {
             foreach ($json->attrs as $jkey => $jval) {
-                if ($jval !== null) {
+                if ($jval === true) {
+                    $attrs .= ' ' . $jkey;
+                } elseif ($jval !== null && $jval !== false) {
                     $attrs .= ' ' . $jkey /*escape?*/ . '="' . static::attrEscape($jval) . '"';
                 }
             }
+        }
+
+        if ($json->toHtml) {
+            $toHtml = $json->toHtml->bindTo($this);
+            $this->_buf .= $toHtml($json) ?: '';
+            return;
         }
 
         if ($json->bem !== false) {
@@ -592,6 +625,8 @@ class BH {
                     $jsParams[$base] = $json->js === true ? [] : $this->_filterNulls($json->js);
                 }
             }
+
+            $addJSInitClass = $this->_optJsCls && ($this->_optJsElem || !$json->elem);
 
             if ($json->mix) {
                 foreach ($json->mix as $mix) {
@@ -614,12 +649,15 @@ class BH {
                         $jsParams = $jsParams ?: [];
                         $jsParams[$mixBase] = $mix->js === true ? [] : $this->_filterNulls($mix->js);
                         $hasMixJsParams = true;
+                        if (!$addJSInitClass) {
+                            $addJSInitClass = $mixBlock && ($this->_optJsCls && ($this->_optJsElem || !$mixElem));
+                        }
                     }
                 }
             }
 
             if ($jsParams) {
-                if ($this->_optJsCls) $cls .= ' ' . $this->_optJsCls;
+                if ($addJSInitClass) $cls .= ' ' . $this->_optJsCls;
                 $jsData = !$hasMixJsParams && $json->js === true ?
                     '{&quot;' . $base . '&quot;:{}}' :
                     self::attrEscape(str_replace('[]', '{}',
@@ -631,26 +669,25 @@ class BH {
 
         $cls = (string)$cls;
         if ($json->cls !== null) {
-            $cls .= ($cls ? ' ' : '') . self::attrEscape($json->cls);
+            $cls .= ($cls ? ' ' : '') . trim(self::attrEscape($json->cls));
         }
 
         $tag = $json->tag !== null ? $json->tag : 'div';
-        $res = '<' . $tag . ($cls ? ' class="' . $cls . '"' : '') . ($attrs ? $attrs : '');
+        $this->_buf .= '<' . $tag . ($cls ? ' class="' . $cls . '"' : '') . ($attrs ? $attrs : '');
 
         if (isset(static::$selfCloseHtmlTags[$tag])) {
-            return $res . '/>';
+            $this->_buf .= '/>';
+            return;
         }
 
-        $res .= '>';
+        $this->_buf .= '>';
         if (!empty($json->html)) {
-            $res .= $json->html;
+            $this->_buf .= $json->html;
 
         } elseif ($json->content !== null) {
-            $res .= $this->toHtml($json->content);
+            $this->_html($json->content);
         }
-        $res .= '</' . $tag . '>';
-
-        return $res;
+        $this->_buf .= '</' . $tag . '>';
     }
 
     // todo: add encoding here

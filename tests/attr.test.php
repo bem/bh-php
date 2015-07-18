@@ -30,10 +30,11 @@ class attrTest extends PHPUnit_Framework_TestCase {
             $ctx->attr('name', null);
             $ctx->attr('type', 'button');
             $ctx->attr('disabled', false);
+            $ctx->attr('hidden', true);
             $ctx->attr('value', null);
         });
         $this->assertEquals(
-            '<div class="checkbox" type="button" disabled="false"></div>',
+            '<div class="checkbox" type="button" hidden></div>',
             $this->bh->apply(['block' => 'checkbox'])
         );
     }

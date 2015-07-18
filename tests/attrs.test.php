@@ -30,13 +30,15 @@ class attrsTest extends PHPUnit_Framework_TestCase {
     function test_it_should_set_attrs () {
         $this->bh->match('checkbox', function ($ctx) {
             $ctx->attrs([
+                'name' => null,
                 'type' => 'button',
                 'disabled' => false,
-                'name' => null
+                'hidden' => true,
+                'value' => null
             ]);
         });
         $this->assertEquals(
-            '<div class="checkbox" type="button" disabled="false"></div>',
+            '<div class="checkbox" type="button" hidden></div>',
             $this->bh->apply(['block' => 'checkbox'])
         );
     }

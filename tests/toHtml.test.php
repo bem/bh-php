@@ -2,6 +2,31 @@
 
 use BEM\BH;
 
+class bhToHtmlJsonToHtmlTest extends PHPUnit_Framework_TestCase {
+
+    /**
+     * @before
+     */
+    function setupBhInstance () {
+        $this->bh = new BH();
+    }
+
+    function test_it_should_redefine_toHtml_method_for_only_node () {
+        $this->bh->match('doctype', function ($ctx) {
+            $type = $ctx->mod('type');
+            return [ 'toHtml' => function () use ($type) { return '<!DOCTYPE ' . $type . '>'; } ];
+        });
+        $this->assertEquals(
+            '<!DOCTYPE html><div class="page"></div>',
+            $this->bh->apply([
+                [ 'block' => 'doctype', 'mods' => [ 'type' => 'html' ] ],
+                [ 'block' => 'page' ]
+            ])
+        );
+    }
+
+}
+
 class bhToHtmlContentTest extends PHPUnit_Framework_TestCase {
 
     /**
@@ -49,14 +74,24 @@ class bhToHtmlContentTest extends PHPUnit_Framework_TestCase {
 
     function test_it_should_prefer__html__field () {
         $this->assertEquals(
-            '<div><br/>1</div>',
+            '<div><hr/></div>',
             $this->bh->apply([
                 'content' => '<br/>',
-                'html' => '<br/>1'
+                'html' => '<hr/>'
             ])
         );
     }
 
+    function test_it_should_prefer__html__field_when_tag_is_empty () {
+        $this->assertEquals(
+            '<hr/>',
+            $this->bh->apply([
+                'tag' => '',
+                'content' => '<br/>',
+                'html' => '<hr/>'
+            ])
+        );
+    }
 }
 
 class bhToHtmlBemTest extends PHPUnit_Framework_TestCase {
@@ -353,6 +388,12 @@ class bhToHtmlJsTest extends PHPUnit_Framework_TestCase {
         );
     }
 
+    function test_itShouldSet_iBem_classOnMixedBlock () {
+        $this->assertEquals(
+            '<div class="button__box icon i-bem" onclick="return {&quot;icon&quot;:{}}">submit</div>',
+            $this->bh->apply([ 'block' => 'button', 'elem' => 'box', 'content' => 'submit', 'mix' => [ 'block' => 'icon', 'js' => true ] ])
+        );
+    }
 }
 
 class bhToHtmlClsTest extends PHPUnit_Framework_TestCase {

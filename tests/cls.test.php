@@ -27,6 +27,14 @@ class cls extends PHPUnit_Framework_TestCase {
             '<div class="button btn"></div>',
             $this->bh->apply(['block' => 'button']));
     }
+    function test_it_should_trim_cls () {
+        $this->bh->match('button', function ($ctx) {
+            $ctx->cls('  btn  ');
+        });
+        $this->assertEquals(
+            '<div class="button btn"></div>',
+            $this->bh->apply(['block' => 'button']));
+    }
     function test_it_should_escape_cls () {
         $this->bh->match('button', function ($ctx) {
             $ctx->cls('url="a=b&c=d"');
