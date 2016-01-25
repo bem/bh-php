@@ -49,6 +49,18 @@ class BH
     protected $_optNobaseMods = false;
 
     /**
+     * Naming bits (delimiters) for blocks and elements, classic BEM by default (block__element_modifier).
+     * For Harry Roberts' BEM-style http://csswizardry.com/work/ (block__element--modifier)
+     * use `['mod' => '--']`.
+     * @var array
+     */
+    protected $_optNaming = [
+        'elem' => '__',
+        'mod' => '_',
+        'val' => '_'
+    ];
+
+    /**
      * Флаг, включающий автоматическую систему поиска зацикливаний. Следует использовать в development-режиме,
      * чтобы определять причины зацикливания.
      * @var boolean
@@ -128,6 +140,10 @@ class BH
 
         if (isset($options['escapeContent'])) {
             $this->_optEscapeContent = $options['escapeContent'];
+        }
+
+        if (isset($options['naming'])) {
+            $this->_optNaming = $options['naming'] + $this->_optNaming;
         }
 
         return $this;
@@ -297,7 +313,7 @@ class BH
         for ($i = sizeof($allMatchers) - 1; $i >= 0; $i--) {
             $matcherInfo = $allMatchers[$i];
             $decl = ['fn' => $matcherInfo['fn'], '__id' => $matcherInfo['__id'], 'index' => $i]
-                + static::parseBemCssClasses($matcherInfo['expr']);
+                + static::parseBemCssClasses($matcherInfo['expr'], $this->_optNaming);
             $declarations[] = $decl;
         }
 
@@ -643,11 +659,11 @@ class BH
 
         if ($json->bem !== false) {
             // hardcoded naming
-            $base = ($json->block ? $json->block : '') . ($json->elem ? '__' . $json->elem : '');
+            $base = ($json->block ? $json->block : '') . ($json->elem ? $this->_optNaming['elem'] . $json->elem : '');
 
             $jsParams = false;
             if ($json->block) {
-                $cls = static::toBemCssClasses($json, $base, null, $this->_optNobaseMods);
+                $cls = static::toBemCssClasses($json, $base, null, $this->_optNobaseMods, $this->_optNaming);
                 if ($json->js !== null && $json->js !== false) {
                     $jsParams = [];
                     $jsParams[$base] = $json->js === true ? [] : static::filterNulls($json->js);
@@ -672,7 +688,13 @@ class BH
                     $mixElem = $mix->elem ?: ($mix->block ? null : ($json->block ? $json->elem : null));
                     $mixBase = $mixBlock . ($mixElem ? '__' . $mixElem : '');
 
-                    $cls .= static::toBemCssClasses($mix, $mixBase, $base, $this->_optNobaseMods);
+                    $cls .= static::toBemCssClasses(
+                        $mix,
+                        $mixBase,
+                        $base,
+                        $this->_optNobaseMods,
+                        $this->_optNaming
+                    );
                     if ($mix->js !== null && $mix->js !== false) {
                         $jsParams = $jsParams ?: [];
                         $jsParams[$mixBase] = $mix->js === true ? [] : static::filterNulls($mix->js);
@@ -738,7 +760,7 @@ class BH
         return htmlspecialchars($s, ENT_QUOTES);
     }
 
-    public static function toBemCssClasses($json, $base, $parentBase = null, $nobase = false)
+    public static function toBemCssClasses($json, $base, $parentBase = null, $nobase = false, array $naming = null)
     {
         $res = '';
 
@@ -755,28 +777,46 @@ class BH
             if (!$mod && $mod !== 0) {
                 continue;
             }
-            $res .= ' ' . ($nobase ? '' : $base) . '_' . $k . ($mod === true ? '' : '_' . $mod);
+            $res .= ' ' . ($nobase ? '' : $base) . $naming['mod'];
+            $res .= $k . ($mod === true ? '' : $naming['val'] . $mod);
         }
 
         return $res;
     }
 
     // @todo fixup hardcoded leveling
-    public static function parseBemCssClasses($expr)
+    public static function parseBemCssClasses($expr, array $naming = null)
     {
-        list($blockBits, $elemBits) = explode('__', $expr . "__\1");
+        list($blockBits, $elemBits) = explode($naming['elem'], $expr . $naming['elem'] . "\1");
 
-        list($block, $blockMod, $blockModVal) = explode('_', $blockBits . "_\1_\1");
-        $blockMod = $blockMod === "\1" ? null : $blockMod;
-        $blockModVal = $blockMod ? ($blockModVal !== "\1" ? $blockModVal : true) : null;
+        list($block, $blockMod, $blockModVal) = self::parseBemCssBits($blockBits, $naming);
 
         if ($elemBits !== "\1") {
-            list($elem, $elemMod, $elemModVal) = explode('_', $elemBits . "_\1_\1_\1");
-            $elemMod = $elemMod === "\1" ? null : $elemMod;
-            $elemModVal = $elemMod ? ($elemModVal !== "\1" ? $elemModVal : true) : null;
+            list($elem, $elemMod, $elemModVal) = self::parseBemCssBits($elemBits, $naming);
         }
 
         return compact('block', 'blockMod', 'blockModVal', 'elem', 'elemMod', 'elemModVal');
+    }
+
+    protected static function parseBemCssBits($expr, $naming)
+    {
+        $elem = $naming['elem'];
+        $mod = $naming['mod'];
+        $val = $naming['val'];
+
+        if ($mod === $val) {
+            list($ent, $entMod, $entModVal) = explode($mod, "${expr}${mod}\1${mod}\1");
+        } else {
+            list($ent, $entModBits) = explode($mod, "${expr}${mod}\1");
+            list($entMod, $entModVal) = explode($val, "${entModBits}${val}\1");
+        }
+
+        $entMod = $entMod === "\1" || empty($entMod) ? null : $entMod;
+        $entModVal = $entMod && !empty($entModVal) ?
+            ($entModVal !== "\1" ? $entModVal : true)
+            : null;
+
+        return [$ent, $entMod, $entModVal];
     }
 
     /**
@@ -805,4 +845,4 @@ class BH
             return $e !== null;
         });
     }
-};
+}
