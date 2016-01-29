@@ -2,16 +2,18 @@
 
 use BEM\BH;
 
-class positionTest extends PHPUnit_Framework_TestCase {
-
+class positionTest extends PHPUnit_Framework_TestCase
+{
     /**
      * @before
      */
-    function setupBhInstance () {
+    public function setupBhInstance()
+    {
         $this->bh = new BH();
     }
 
-    function test_it_should_calc_position () {
+    public function test_it_should_calc_position()
+    {
         $this->bh->match('button__inner', function ($ctx) {
             $ctx->mod('pos', $ctx->position());
         });
@@ -27,7 +29,8 @@ class positionTest extends PHPUnit_Framework_TestCase {
             ])
         );
     }
-    function test_it_should_calc_position_with_array_mess () {
+    public function test_it_should_calc_position_with_array_mess()
+    {
         $this->bh->match('button__inner', function ($ctx) {
             $ctx->mod('pos', $ctx->position());
         });
@@ -46,7 +49,8 @@ class positionTest extends PHPUnit_Framework_TestCase {
             ])
         );
     }
-    function test_it_should_calc_position_for_single_element () {
+    public function test_it_should_calc_position_for_single_element()
+    {
         $this->bh->match('button__inner', function ($ctx) {
             $ctx->mod('pos', $ctx->position());
         });

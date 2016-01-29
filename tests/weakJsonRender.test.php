@@ -2,8 +2,8 @@
 
 use BEM\BH;
 
-class weakJsonRenderTest extends PHPUnit_Framework_TestCase {
-
+class weakJsonRenderTest extends PHPUnit_Framework_TestCase
+{
     protected static $fixture1 = <<<bemjson
 ({
     block : 'page'
@@ -27,7 +27,8 @@ result;
     /**
      * @before
      */
-    function setupBhInstance () {
+    public function setupBhInstance()
+    {
         $bh = $this->bh = new BH();
 
         // bem-core/common/page
@@ -94,7 +95,7 @@ result;
         $bh->match('page__css', function ($ctx, $json) {
             $ctx->bem(false);
 
-            if($json->url) {
+            if ($json->url) {
                 $ctx
                     ->tag('link')
                     ->attr('rel', 'stylesheet')
@@ -158,7 +159,8 @@ result;
         });
     }
 
-    function test_emptyPageRender () {
+    public function test_emptyPageRender()
+    {
         $this->assertEquals(
             self::stripWhitespaces(self::$expected1),
             $this->bh->apply(self::$fixture1)
@@ -166,7 +168,8 @@ result;
     }
 
 
-    protected function stripWhitespaces ($s) {
+    protected function stripWhitespaces($s)
+    {
         return preg_replace('@\s*\n\s*@', '', $s);
     }
 }

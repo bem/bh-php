@@ -2,16 +2,18 @@
 
 use BEM\BH;
 
-class contentTest extends PHPUnit_Framework_TestCase {
-
+class contentTest extends PHPUnit_Framework_TestCase
+{
     /**
      * @before
      */
-    function setupBhInstance () {
+    public function setupBhInstance()
+    {
         $this->bh = new BH();
     }
 
-    function test_it_should_return_bemjson_content () {
+    public function test_it_should_return_bemjson_content()
+    {
         $this->bh->match('button', function ($ctx) {
             $this->assertEquals(
                 'Hello',
@@ -20,7 +22,8 @@ class contentTest extends PHPUnit_Framework_TestCase {
         $this->bh->apply(['block' => 'button', 'content' => 'Hello']);
     }
 
-    function test_it_should_set_bemjson_content () {
+    public function test_it_should_set_bemjson_content()
+    {
         $this->bh->match('button', function ($ctx) {
             $ctx->content(['elem' => 'text']);
         });
@@ -29,7 +32,8 @@ class contentTest extends PHPUnit_Framework_TestCase {
             $this->bh->apply(['block' => 'button']));
     }
 
-    function test_it_should_set_bemjson_array_content () {
+    public function test_it_should_set_bemjson_array_content()
+    {
         $this->bh->match('button', function ($ctx) {
             $ctx->content([['elem' => 'text1'], ['elem' => 'text2']]);
         });
@@ -38,7 +42,8 @@ class contentTest extends PHPUnit_Framework_TestCase {
             $this->bh->apply(['block' => 'button']));
     }
 
-    function test_it_should_set_bemjson_string_content () {
+    public function test_it_should_set_bemjson_string_content()
+    {
         $this->bh->match('button', function ($ctx) {
             $ctx->content('Hello World');
         });
@@ -47,7 +52,8 @@ class contentTest extends PHPUnit_Framework_TestCase {
             $this->bh->apply(['block' => 'button']));
     }
 
-    function test_it_should_set_bemjson_numeric_content () {
+    public function test_it_should_set_bemjson_numeric_content()
+    {
         $this->bh->match('button', function ($ctx) {
             $ctx->content(123);
         });
@@ -56,7 +62,8 @@ class contentTest extends PHPUnit_Framework_TestCase {
             $this->bh->apply(['block' => 'button']));
     }
 
-    function test_it_should_set_bemjson_zero_numeric_content () {
+    public function test_it_should_set_bemjson_zero_numeric_content()
+    {
         $this->bh->match('button', function ($ctx) {
             $ctx->content(0);
         });
@@ -65,7 +72,8 @@ class contentTest extends PHPUnit_Framework_TestCase {
             $this->bh->apply(['block' => 'button']));
     }
 
-    function test_it_should_not_override_user_content () {
+    public function test_it_should_not_override_user_content()
+    {
         $this->bh->match('button', function ($ctx) {
             $ctx->content(['elem' => 'text']);
         });
@@ -74,7 +82,8 @@ class contentTest extends PHPUnit_Framework_TestCase {
             $this->bh->apply(['block' => 'button', 'content' => 'Hello']));
     }
 
-    function test_it_should_not_override_later_declarations () {
+    public function test_it_should_not_override_later_declarations()
+    {
         $this->bh->match('button', function ($ctx) {
             $ctx->content(['elem' => 'text2']);
         });
@@ -86,7 +95,8 @@ class contentTest extends PHPUnit_Framework_TestCase {
             $this->bh->apply(['block' => 'button']));
     }
 
-    function test_it_should_override_later_declarations_with_force_flag () {
+    public function test_it_should_override_later_declarations_with_force_flag()
+    {
         $this->bh->match('button', function ($ctx) {
             $ctx->content(['elem' => 'text2'], true);
         });
@@ -98,7 +108,8 @@ class contentTest extends PHPUnit_Framework_TestCase {
             $this->bh->apply(['block' => 'button']));
     }
 
-    function test_it_should_override_user_declarations_with_force_flag () {
+    public function test_it_should_override_user_declarations_with_force_flag()
+    {
         $this->bh->match('button', function ($ctx) {
             $ctx->content('text', true);
         });
@@ -106,5 +117,4 @@ class contentTest extends PHPUnit_Framework_TestCase {
             '<div class="button">text</div>',
             $this->bh->apply(['block' => 'button', 'content' => 'Hello']));
     }
-
 }

@@ -5,8 +5,8 @@ namespace BEM;
 /**
  * BemJson node context
  */
-class Json {
-
+class Json
+{
     /** @var string */
     public $block;
 
@@ -55,7 +55,8 @@ class Json {
      * Constructor
      * @param array|object $node
      */
-    public function __construct ($node) {
+    public function __construct($node)
+    {
         if (!is_array($node)) {
             throw new \Exception('Incorrect data for Json creation');
         }
@@ -74,12 +75,14 @@ class Json {
         }
     }
 
-    public function setContent ($content) {
+    public function setContent($content)
+    {
         $this->content = is_null($content) || is_scalar($content) ? $content
             : JsonCollection::normalize($content);
     }
 
-    public function __get ($name) {
+    public function __get($name)
+    {
         if ($name === 'mods' || $name === 'elemMods') {
             if (is_null($this->$name)) {
                 $this->$name = new Mods();
@@ -89,7 +92,8 @@ class Json {
         return null;
     }
 
-    public function __set ($name, $value) {
+    public function __set($name, $value)
+    {
         if ($name === 'mods' || $name === 'elemMods') {
             $this->$name = empty($value) ? null
                 : is_array($value) ? new Mods($value) : $value;
@@ -98,7 +102,8 @@ class Json {
         }
     }
 
-    public function __isset ($name) {
+    public function __isset($name)
+    {
         if ($name === 'mods' || $name === 'elemMods') {
             return !empty($this->$name);
         }
@@ -134,5 +139,4 @@ class Json {
             $fn($this);
         }
     }*/
-
 }

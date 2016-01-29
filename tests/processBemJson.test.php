@@ -1,21 +1,25 @@
 <?php
 
-use BEM\BH, BEM\Json, BEM\JsonCollection;
+use BEM\BH;
+use BEM\Json;
+use BEM\JsonCollection;
 
 // Standard:
 //   EN - https://en.bem.info/technology/bemjson/v2/bemjson/
 //   RU - http://ru.bem.info/technology/bemjson/
 
-class processBemJsonTest extends PHPUnit_Framework_TestCase {
-
+class processBemJsonTest extends PHPUnit_Framework_TestCase
+{
     /**
      * @before
      */
-    function setupBhInstance () {
+    public function setupBhInstance()
+    {
         $this->bh = new BH();
     }
 
-    function test_it_should_create_empty_block_mods () {
+    public function test_it_should_create_empty_block_mods()
+    {
         $this->assertEquals(
             new Json([
                 'block' => 'button',
@@ -27,7 +31,8 @@ class processBemJsonTest extends PHPUnit_Framework_TestCase {
         );
     }
 
-    function test_it_should_create_empty_elem_mods () {
+    public function test_it_should_create_empty_elem_mods()
+    {
         $this->assertEquals(
             new Json([
                 'block' => 'button',
@@ -42,7 +47,8 @@ class processBemJsonTest extends PHPUnit_Framework_TestCase {
         );
     }
 
-    function test_it_should_inherit_block_mods () {
+    public function test_it_should_inherit_block_mods()
+    {
         $this->assertEquals(
             JsonCollection::normalize([
                 'block' => 'button',
@@ -62,7 +68,8 @@ class processBemJsonTest extends PHPUnit_Framework_TestCase {
         );
     }
 
-    function test_it_should_use_elemMods_instead_of_mods_if_collision () {
+    public function test_it_should_use_elemMods_instead_of_mods_if_collision()
+    {
         $this->assertEquals(
             JsonCollection::normalize([
                 'block' => 'button',

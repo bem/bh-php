@@ -2,11 +2,12 @@
 
 use BEM\BH;
 
-class tParamTest extends PHPUnit_Framework_BHTestCase {
-
+class tParamTest extends PHPUnit_Framework_BHTestCase
+{
     // bh.js ported tests
 
-    function test_it_should_return_tParam_value_in_nested_element () {
+    public function test_it_should_return_tParam_value_in_nested_element()
+    {
         $this->bh->match('button', function ($ctx) {
             $ctx->tParam('name', $_ = 'sample-name');
         });
@@ -16,17 +17,19 @@ class tParamTest extends PHPUnit_Framework_BHTestCase {
         $this->bh->apply(['block' => 'button', 'content' => ['elem' => 'inner']]);
     }
 
-    function test_it_should_return_tParam_value_in_nested_block () {
-        $this->bh->match('button', function($ctx) {
+    public function test_it_should_return_tParam_value_in_nested_block()
+    {
+        $this->bh->match('button', function ($ctx) {
             $ctx->tParam('name', $_ = 'sample-name');
         });
-        $this->bh->match('input', function($ctx) {
+        $this->bh->match('input', function ($ctx) {
             $this->assertEquals('sample-name', $ctx->tParam('name'));
         });
         $this->bh->apply([ 'block' => 'button', 'content' => [ 'block' => 'input' ] ]);
     }
 
-    function test_it_should_return_tParam_value_in_sub_nested_element () {
+    public function test_it_should_return_tParam_value_in_sub_nested_element()
+    {
         $this->bh->match('button', function ($ctx) {
             $ctx->tParam('name', $_ = 'sample-name');
         });
@@ -36,7 +39,8 @@ class tParamTest extends PHPUnit_Framework_BHTestCase {
         $this->bh->apply(['block' => 'button', 'content' => ['elem' => 'inner', 'content' => ['elem' => 'sub-inner']]]);
     }
 
-    function test_it_should_not_return_tParam_value_in_non_nested_element () {
+    public function test_it_should_not_return_tParam_value_in_non_nested_element()
+    {
         $this->bh->match('button', function ($ctx) {
             $ctx->tParam('name', $_ = 'sample-name');
         });
@@ -46,7 +50,8 @@ class tParamTest extends PHPUnit_Framework_BHTestCase {
         $this->bh->apply([['block' => 'button'], ['block' => 'input']]);
     }
 
-    function test_it_should_not_override_later_declarations () {
+    public function test_it_should_not_override_later_declarations()
+    {
         $this->bh->match('button', function ($ctx) {
             $ctx->tParam('foo', $_ = 1);
         });
@@ -59,7 +64,8 @@ class tParamTest extends PHPUnit_Framework_BHTestCase {
         $this->bh->apply(['block' => 'button', 'content' => ['elem' => 'control']]);
     }
 
-    function test_it_should_override_later_declarations_with_force_flag () {
+    public function test_it_should_override_later_declarations_with_force_flag()
+    {
         $this->bh->match('button', function ($ctx) {
             $ctx->tParam('foo', $_ = 1, true);
         });

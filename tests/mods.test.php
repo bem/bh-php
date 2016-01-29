@@ -2,16 +2,18 @@
 
 use BEM\BH;
 
-class mods extends PHPUnit_Framework_TestCase {
-
+class mods extends PHPUnit_Framework_TestCase
+{
     /**
      * @before
      */
-    function setupBhInstance () {
+    public function setupBhInstance()
+    {
         $this->bh = new BH();
     }
 
-    function test_it_should_return_empty_mods () {
+    public function test_it_should_return_empty_mods()
+    {
         $this->bh->match('button', function ($ctx) {
             $mods = $ctx->mods(); // is_a BEM\Mods
             $this->assertInternalType('object', $mods);
@@ -20,7 +22,8 @@ class mods extends PHPUnit_Framework_TestCase {
         $this->bh->apply(['block' => 'button']);
     }
 
-    function test_it_should_return_mods () {
+    public function test_it_should_return_mods()
+    {
         $this->bh->match('button', function ($ctx) {
             $this->assertEquals(
                 'button',
@@ -30,7 +33,8 @@ class mods extends PHPUnit_Framework_TestCase {
         $this->bh->apply(['block' => 'button', 'mods' => ['type' => 'button']]);
     }
 
-    function test_it_should_return_elem_mods () {
+    public function test_it_should_return_elem_mods()
+    {
         $this->bh->match('button__control', function ($ctx) {
             $this->assertEquals(
                 'button',
@@ -40,7 +44,8 @@ class mods extends PHPUnit_Framework_TestCase {
         $this->bh->apply([ 'block' => 'button', 'elem' => 'control', 'elemMods' => [ 'type' => 'button' ] ]);
     }
 
-    function test_it_should_return_boolean_mods () {
+    public function test_it_should_return_boolean_mods()
+    {
         $this->bh->match('button', function ($ctx) {
             $this->assertEquals(
                 true,
@@ -50,7 +55,8 @@ class mods extends PHPUnit_Framework_TestCase {
         $this->bh->apply(['block' => 'button', 'mods' => ['disabled' => true]]);
     }
 
-    function test_it_should_set_mods () {
+    public function test_it_should_set_mods()
+    {
         $this->bh->match('button', function ($ctx) {
             $ctx->mods(['type' => 'button', 'disabled' => true]);
         });
@@ -60,7 +66,8 @@ class mods extends PHPUnit_Framework_TestCase {
         );
     }
 
-    function test_it_should_not_override_user_mods () {
+    public function test_it_should_not_override_user_mods()
+    {
         $this->bh->match('button', function ($ctx) {
             $ctx->mods([
                 'type' => 'button',
@@ -79,7 +86,8 @@ class mods extends PHPUnit_Framework_TestCase {
         );
     }
 
-    function test_it_should_not_override_later_declarations () {
+    public function test_it_should_not_override_later_declarations()
+    {
         $this->bh->match('button', function ($ctx) {
             $ctx->mods(['type' => 'control']);
         });
@@ -92,7 +100,8 @@ class mods extends PHPUnit_Framework_TestCase {
         );
     }
 
-    function test_it_should_override_later_declarations_with_force_flag () {
+    public function test_it_should_override_later_declarations_with_force_flag()
+    {
         $this->bh->match('button', function ($ctx) {
             $ctx->mods(['type' => 'control'], true);
         });
@@ -105,7 +114,8 @@ class mods extends PHPUnit_Framework_TestCase {
         );
     }
 
-    function test_it_should_override_user_declarations_with_force_flag () {
+    public function test_it_should_override_user_declarations_with_force_flag()
+    {
         $this->bh->match('button', function ($ctx) {
             $ctx->mods(['type' => 'button'], true);
         });

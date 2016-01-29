@@ -3,16 +3,18 @@
 
 use BEM\BH;
 
-class extendTest extends PHPUnit_Framework_TestCase {
-
+class extendTest extends PHPUnit_Framework_TestCase
+{
     /**
      * @before
      */
-    function setupBhInstance () {
+    public function setupBhInstance()
+    {
         $this->bh = new BH();
     }
 
-    function test_it_should_extend_empty_target () {
+    public function test_it_should_extend_empty_target()
+    {
         $this->bh->match('button', function ($ctx) {
             $this->assertEquals(
                 'bar',
@@ -22,7 +24,8 @@ class extendTest extends PHPUnit_Framework_TestCase {
         $this->bh->apply(['block' => 'button']);
     }
 
-    function test_it_should_extend_object () {
+    public function test_it_should_extend_object()
+    {
         $this->bh->match('button', function ($ctx) {
             $this->assertEquals(
                 'foo',
@@ -31,5 +34,4 @@ class extendTest extends PHPUnit_Framework_TestCase {
         });
         $this->bh->apply(['block' => 'button']);
     }
-
 }

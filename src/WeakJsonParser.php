@@ -6,8 +6,8 @@ namespace BEM;
  * json-like format reader
  */
 
-class WeakJsonParser {
-
+class WeakJsonParser
+{
     // const CONTEXT_ROOT = 0x01;
     // const CONTEXT_OBJECT = 0x02;
     // const CONTEXT_ARRAY = 0x03;
@@ -19,7 +19,8 @@ class WeakJsonParser {
     protected $pos;
     protected $len;
 
-    public function parse ($s) {
+    public function parse($s)
+    {
         $this->s = $s;
         $this->pos = 0;
         $this->len = strlen($s);
@@ -34,7 +35,8 @@ class WeakJsonParser {
         return $res;
     }
 
-    protected function parseValue () {
+    protected function parseValue()
+    {
         $res = null;
 
         $this->skipWs();
@@ -96,12 +98,10 @@ class WeakJsonParser {
             }
             $this->pos++;
             // $this->ctx();
-        }
-        elseif ($ch === '}') {
+        } elseif ($ch === '}') {
             // if ($this->ctx !== self::CONTEXT_OBJECT) $this->err('Unpaired brace `}`');
             $this->err('Unexpected `}`');
-        }
-        elseif ($ch === '[') {
+        } elseif ($ch === '[') {
             // $this->ctx(self::CONTEXT_ARRAY);
             $start = $this->pos;
             $this->pos++;
@@ -128,8 +128,7 @@ class WeakJsonParser {
             }
             $this->pos++;
             // $this->ctx();
-        }
-        elseif ($ch === ']') {
+        } elseif ($ch === ']') {
             // if ($this->ctx() !== self::CONTEXT_ARRAY) $this->err('Unpaired bracket `]`');
             $this->err('Unexpected `]`');
         }
@@ -137,16 +136,13 @@ class WeakJsonParser {
         elseif ($ch === 't') {
             $this->parseExactKey('true', 4);
             $res = true;
-        }
-        elseif ($ch === 'f') {
+        } elseif ($ch === 'f') {
             $this->parseExactKey('false', 5);
             $res = false;
-        }
-        elseif ($ch === 'n') {
+        } elseif ($ch === 'n') {
             $this->parseExactKey('null', 4);
             $res = null;
-        }
-        elseif ($ch === 'u') {
+        } elseif ($ch === 'u') {
             $this->parseExactKey('undefined', 9);
             $res = null;
         }
@@ -154,13 +150,13 @@ class WeakJsonParser {
         return $res;
     }
 
-    protected function parseKey () {
+    protected function parseKey()
+    {
         $res = null;
         $ch = $this->ch();
         if ($ch === '"' || $ch === "'") {
             $res = $this->parseQuotedString();
-        }
-        else {
+        } else {
             $res = $ch;
             while (ctype_alnum($ch = $this->nextCh()) || $ch === '_') {
                 $res .= $ch;
@@ -169,7 +165,8 @@ class WeakJsonParser {
         return $res;
     }
 
-    protected function parseNumeric () {
+    protected function parseNumeric()
+    {
         $i = $this->pos;
         $sp = false;
         while ($i < $this->len) {
@@ -185,7 +182,8 @@ class WeakJsonParser {
         return $sp ? (float)$res : (int)$res;
     }
 
-    protected function parseHexanumeric () {
+    protected function parseHexanumeric()
+    {
         $i = $this->pos + 2;
         while ($i < $this->len) {
             $ch = $this->s[$i];
@@ -199,7 +197,8 @@ class WeakJsonParser {
         return hexdec($res);
     }
 
-    protected function parseQuotedString () {
+    protected function parseQuotedString()
+    {
         $q = $this->ch();
         $start = $this->pos;
         $ch = $this->nextCh();
@@ -221,7 +220,8 @@ class WeakJsonParser {
         return $res;
     }
 
-    protected function parseExactKey ($s, $l = null) {
+    protected function parseExactKey($s, $l = null)
+    {
         $res = null;
         $l = $l ?: strlen($s);
         if (substr($this->s, $this->pos, $l) === $s) {
@@ -240,7 +240,8 @@ class WeakJsonParser {
         return $res;
     }
 
-    protected function skipWs () {
+    protected function skipWs()
+    {
         while ($this->pos < $this->len) {
             $ch = $this->s[$this->pos];
             if (!ctype_space($ch)) {
@@ -250,7 +251,8 @@ class WeakJsonParser {
         }
     }
 
-    protected function skipColon () {
+    protected function skipColon()
+    {
         $res = 0;
         while ($this->pos < $this->len) {
             $ch = $this->s[$this->pos];
@@ -263,7 +265,8 @@ class WeakJsonParser {
         return $res;
     }
 
-    protected function skipCommas () {
+    protected function skipCommas()
+    {
         $res = 0;
         while ($this->pos < $this->len) {
             $ch = $this->s[$this->pos];
@@ -276,11 +279,13 @@ class WeakJsonParser {
         return $res;
     }
 
-    protected function ch () {
+    protected function ch()
+    {
         return isset($this->s[$this->pos]) ? $this->s[$this->pos] : null;
     }
 
-    protected function nextCh () {
+    protected function nextCh()
+    {
         $this->pos++;
         if ($this->pos > $this->len) {
             $this->pos = $this->len; //$this->err('Syntax error at ' . $this->loc());
@@ -288,9 +293,12 @@ class WeakJsonParser {
         return $this->ch();
     }
 
-    protected function d () {
+    protected function d()
+    {
         static $first = null;
-        if (!$first) $first = microtime(1);
+        if (!$first) {
+            $first = microtime(1);
+        }
         $s = str_replace(array("\r", "\t", "\n", " "), '', $this->s);
         $out = [sprintf("%.3fms", (microtime(1) - $first)*1000), $s, $this->ch(), $this->pos, $this->len];
         call_user_func_array(__NAMESPACE__.'\\d', array_merge($out, func_get_args()));
@@ -310,16 +318,19 @@ class WeakJsonParser {
     }
     */
 
-    protected function err ($msg = null) {
+    protected function err($msg = null)
+    {
         $msg = $msg ?: 'Silent error';
         throw new \Exception($msg . ' ' . $this->humanLoc());
     }
 
-    protected function loc ($pos = null) {
+    protected function loc($pos = null)
+    {
         return Location::build($this->s, $pos ?: $this->pos);
     }
 
-    protected function humanLoc ($pos = null) {
+    protected function humanLoc($pos = null)
+    {
         $pos = $pos ?: $this->pos;
         $loc = $this->loc($pos);
         $nearlyStart = max(0, $loc->column - 15);
@@ -330,20 +341,24 @@ class WeakJsonParser {
     }
 }
 
-class Location {
+class Location
+{
     public $line = 1;
     public $column = 0;
     public $str = '';
-    public function __construct ($line, $column, $lineStr) {
+    public function __construct($line, $column, $lineStr)
+    {
         $this->line = $line;
         $this->column = $column;
         $this->str = $lineStr;
     }
-    public function __toString() {
+    public function __toString()
+    {
         return 'line ' . $this->line . ' column ' . $this->column;
     }
 
-    public static function build ($s, $pos) {
+    public static function build($s, $pos)
+    {
         $line = 1;
         $column = 0;
         $i = 0; // line start

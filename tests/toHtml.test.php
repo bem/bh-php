@@ -2,16 +2,18 @@
 
 use BEM\BH;
 
-class bhToHtmlJsonToHtmlTest extends PHPUnit_Framework_TestCase {
-
+class bhToHtmlJsonToHtmlTest extends PHPUnit_Framework_TestCase
+{
     /**
      * @before
      */
-    function setupBhInstance () {
+    public function setupBhInstance()
+    {
         $this->bh = new BH();
     }
 
-    function test_it_should_redefine_toHtml_method_for_only_node () {
+    public function test_it_should_redefine_toHtml_method_for_only_node()
+    {
         $this->bh->match('doctype', function ($ctx) {
             $type = $ctx->mod('type');
             return [ 'toHtml' => function () use ($type) { return '<!DOCTYPE ' . $type . '>'; } ];
@@ -24,19 +26,20 @@ class bhToHtmlJsonToHtmlTest extends PHPUnit_Framework_TestCase {
             ])
         );
     }
-
 }
 
-class bhToHtmlContentTest extends PHPUnit_Framework_TestCase {
-
+class bhToHtmlContentTest extends PHPUnit_Framework_TestCase
+{
     /**
      * @before
      */
-    function setupBhInstance () {
+    public function setupBhInstance()
+    {
         $this->bh = new BH();
     }
 
-    function test_it_should_return_empty_content () {
+    public function test_it_should_return_empty_content()
+    {
         $this->assertEquals(
             '<div></div>',
             $this->bh->apply([
@@ -50,7 +53,8 @@ class bhToHtmlContentTest extends PHPUnit_Framework_TestCase {
         );
     }
 
-    function test_it_should_escape_string_when_option_enabled () {
+    public function test_it_should_escape_string_when_option_enabled()
+    {
         $this->bh->setOptions(['escapeContent' => true]);
         $this->assertEquals(
             '&lt;a&gt;&amp;nbsp;&lt;/a&gt;',
@@ -58,7 +62,8 @@ class bhToHtmlContentTest extends PHPUnit_Framework_TestCase {
         );
     }
 
-    function test_it_should_escape_content_when_option_enabled () {
+    public function test_it_should_escape_content_when_option_enabled()
+    {
         $this->bh->setOptions(['escapeContent' => true]);
         $this->assertEquals(
             '<div>&lt;&amp;&gt;&lt;&amp;&gt;<div>&lt;&amp;&gt;</div></div>',
@@ -72,7 +77,8 @@ class bhToHtmlContentTest extends PHPUnit_Framework_TestCase {
         );
     }
 
-    function test_it_should_prefer__html__field () {
+    public function test_it_should_prefer__html__field()
+    {
         $this->assertEquals(
             '<div><hr/></div>',
             $this->bh->apply([
@@ -82,7 +88,8 @@ class bhToHtmlContentTest extends PHPUnit_Framework_TestCase {
         );
     }
 
-    function test_it_should_prefer__html__field_when_tag_is_empty () {
+    public function test_it_should_prefer__html__field_when_tag_is_empty()
+    {
         $this->assertEquals(
             '<hr/>',
             $this->bh->apply([
@@ -94,28 +101,32 @@ class bhToHtmlContentTest extends PHPUnit_Framework_TestCase {
     }
 }
 
-class bhToHtmlBemTest extends PHPUnit_Framework_TestCase {
-
+class bhToHtmlBemTest extends PHPUnit_Framework_TestCase
+{
     /**
      * @before
      */
-    function setupBhInstance () {
+    public function setupBhInstance()
+    {
         $this->bh = new BH();
     }
 
-    function test_it_should_not_set_class_if_not_bem () {
+    public function test_it_should_not_set_class_if_not_bem()
+    {
         $this->assertEquals(
             '<div></div>',
             $this->bh->apply(['block' => 'button', 'bem' => false]));
     }
 
-    function test_it_should_not_set_js_if_not_bem () {
+    public function test_it_should_not_set_js_if_not_bem()
+    {
         $this->assertEquals(
             '<div></div>',
             $this->bh->apply(['block' => 'button', 'js' => true, 'bem' => false]));
     }
 
-    function test_it_should_not_set_mixed_class_if_not_bem () {
+    public function test_it_should_not_set_mixed_class_if_not_bem()
+    {
         $this->assertEquals(
             '<div class="button"></div>',
             $this->bh->apply([
@@ -125,7 +136,8 @@ class bhToHtmlBemTest extends PHPUnit_Framework_TestCase {
         );
     }
 
-    function test_it_should_not_set_mixed_js_if_not_bem () {
+    public function test_it_should_not_set_mixed_js_if_not_bem()
+    {
         $this->assertEquals(
             '<div class="button"></div>',
             $this->bh->apply([
@@ -134,47 +146,52 @@ class bhToHtmlBemTest extends PHPUnit_Framework_TestCase {
             ])
         );
     }
-
 }
 
-class bhToHtmlTagsTest extends PHPUnit_Framework_TestCase {
-
+class bhToHtmlTagsTest extends PHPUnit_Framework_TestCase
+{
     /**
      * @before
      */
-    function setupBhInstance () {
+    public function setupBhInstance()
+    {
         $this->bh = new BH();
     }
 
-    function test_it_should_return_html_tag__div__by_default () {
+    public function test_it_should_return_html_tag__div__by_default()
+    {
         $this->assertEquals(
             '<div></div>',
             $this->bh->apply([]));
     }
 
-    function test_it_should_return_html_tag__span () {
+    public function test_it_should_return_html_tag__span()
+    {
         $this->assertEquals(
             '<span></span>',
             $this->bh->apply(['tag' => 'span']));
     }
 
-    function test_it_should_return_content_when__tag__is_empty () {
+    public function test_it_should_return_content_when__tag__is_empty()
+    {
         $this->assertEquals(
             'label',
             $this->bh->apply(['tag' => false, 'content' => 'label']));
     }
 }
 
-class bhToHtmlAttrsTest extends PHPUnit_Framework_TestCase {
-
+class bhToHtmlAttrsTest extends PHPUnit_Framework_TestCase
+{
     /**
      * @before
      */
-    function setupBhInstance () {
+    public function setupBhInstance()
+    {
         $this->bh = new BH();
     }
 
-    function test_it_should_ignore_null_attrs () {
+    public function test_it_should_ignore_null_attrs()
+    {
         $this->bh->match('button', function ($ctx) {
             $ctx->tag('a');
             $ctx->attr('href', '#');
@@ -188,7 +205,8 @@ class bhToHtmlAttrsTest extends PHPUnit_Framework_TestCase {
         );
     }
 
-    function test_it_should_not_ignore_empty_attrs () {
+    public function test_it_should_not_ignore_empty_attrs()
+    {
         $this->bh->match('button', function ($ctx) {
             $ctx->tag('a');
             $ctx->attr('href', '#');
@@ -202,7 +220,8 @@ class bhToHtmlAttrsTest extends PHPUnit_Framework_TestCase {
         );
     }
 
-    function test_it_should_escape_attrs_ () {
+    public function test_it_should_escape_attrs_()
+    {
         $this->assertEquals(
             '<a href="&lt;script type=&quot;javascript&quot;&gt;window &amp;&amp; ' .
             'alert(document.cookie)&lt;/script&gt;">link</a>',
@@ -215,16 +234,18 @@ class bhToHtmlAttrsTest extends PHPUnit_Framework_TestCase {
     }
 }
 
-class bhToHtmlModsTest extends PHPUnit_Framework_TestCase {
-
+class bhToHtmlModsTest extends PHPUnit_Framework_TestCase
+{
     /**
      * @before
      */
-    function setupBhInstance () {
+    public function setupBhInstance()
+    {
         $this->bh = new BH();
     }
 
-    function test_it_should_ignore_null_mods () {
+    public function test_it_should_ignore_null_mods()
+    {
         $this->bh->match('button', function ($ctx) {
             $ctx->tag('a');
             $ctx->mod('type', 'active');
@@ -238,7 +259,8 @@ class bhToHtmlModsTest extends PHPUnit_Framework_TestCase {
         );
     }
 
-    function test_it_should_ignore_empty_mods () {
+    public function test_it_should_ignore_empty_mods()
+    {
         $this->bh->match('button', function ($ctx) {
             $ctx->tag('a');
             $ctx->mod('type', 'active');
@@ -252,7 +274,8 @@ class bhToHtmlModsTest extends PHPUnit_Framework_TestCase {
         );
     }
 
-    function test_it_should_not_ignore_boolean_mods () {
+    public function test_it_should_not_ignore_boolean_mods()
+    {
         $this->bh->match('button', function ($ctx) {
             $ctx->tag('button');
             $ctx->mod('disabled', 'disabled');
@@ -267,23 +290,26 @@ class bhToHtmlModsTest extends PHPUnit_Framework_TestCase {
         );
     }
 
-    function test_it_should_not_ignore_zero_mods () {
+    public function test_it_should_not_ignore_zero_mods()
+    {
         $this->assertEquals(
             '<div class="button button_zero_0"></div>',
             $this->bh->apply(['block' => 'button', 'mods' => ['zero' => 0]]));
     }
 }
 
-class bhToHtmlMixTest extends PHPUnit_Framework_TestCase {
-
+class bhToHtmlMixTest extends PHPUnit_Framework_TestCase
+{
     /**
      * @before
      */
-    function setupBhInstance () {
+    public function setupBhInstance()
+    {
         $this->bh = new BH();
     }
 
-    function test_it_should_not_set_null_mix () {
+    public function test_it_should_not_set_null_mix()
+    {
         $this->assertEquals(
             '<div class="button"></div>',
             $this->bh->apply([
@@ -293,11 +319,13 @@ class bhToHtmlMixTest extends PHPUnit_Framework_TestCase {
         );
     }
 
-    function test_should_not_set_elem_mix_on_empty_node () {
+    public function test_should_not_set_elem_mix_on_empty_node()
+    {
         $this->assertEquals('<div></div>', $this->bh->apply([ 'mix' => [ 'elem' => 'button' ] ]));
     }
 
-    function test_it_should_set_elem_mix () {
+    public function test_it_should_set_elem_mix()
+    {
         $this->bh->match('button', function ($ctx) {
             $ctx->mix(['elem' => 'mix']);
         });
@@ -307,7 +335,8 @@ class bhToHtmlMixTest extends PHPUnit_Framework_TestCase {
         );
     }
 
-    function test_it_should_set_mods_mix () {
+    public function test_it_should_set_mods_mix()
+    {
         $this->bh->match('button', function ($ctx) {
             $ctx->mix(['mods' => ['disabled' => true, 'theme' => 'normal']]);
         });
@@ -317,7 +346,8 @@ class bhToHtmlMixTest extends PHPUnit_Framework_TestCase {
         );
     }
 
-    function test_it_should_set_elem_mods_mix () {
+    public function test_it_should_set_elem_mods_mix()
+    {
         $this->bh->match('button', function ($ctx) {
             $ctx->mix(['elem' => 'control', 'mods' => ['disabled' => true]]);
         });
@@ -327,7 +357,8 @@ class bhToHtmlMixTest extends PHPUnit_Framework_TestCase {
         );
     }
 
-    function test_it_should_set_elem_elemMods_mix () {
+    public function test_it_should_set_elem_elemMods_mix()
+    {
         $this->bh->match('button', function ($ctx) {
             $ctx->mix(['elem' => 'control', 'elemMods' => ['disabled' => true]]);
         });
@@ -337,7 +368,8 @@ class bhToHtmlMixTest extends PHPUnit_Framework_TestCase {
         );
     }
 
-    function test_it_should_set_mixed_js () {
+    public function test_it_should_set_mixed_js()
+    {
         $this->assertEquals(
             '<div class="button link button__control i-bem" ' .
                 'onclick="return {&quot;link&quot;:{},&quot;button__control&quot;:{&quot;foo&quot;:&quot;bar&quot;}}"' .
@@ -349,7 +381,8 @@ class bhToHtmlMixTest extends PHPUnit_Framework_TestCase {
         );
     }
 
-    function test_it_should_set_several_mixes () {
+    public function test_it_should_set_several_mixes()
+    {
         $this->bh->match('button', function ($ctx) {
             $ctx->mix([
                 ['block' => 'link'],
@@ -365,30 +398,34 @@ class bhToHtmlMixTest extends PHPUnit_Framework_TestCase {
     }
 }
 
-class bhToHtmlJsTest extends PHPUnit_Framework_TestCase {
-
+class bhToHtmlJsTest extends PHPUnit_Framework_TestCase
+{
     /**
      * @before
      */
-    function setupBhInstance () {
+    public function setupBhInstance()
+    {
         $this->bh = new BH();
     }
 
-    function test_itShouldSet_iBem_classOnElement () {
+    public function test_itShouldSet_iBem_classOnElement()
+    {
         $this->assertEquals(
             '<div class="button__control i-bem" onclick="return {&quot;button__control&quot;:{}}">submit</div>',
             $this->bh->apply([ 'block' => 'button', 'elem' => 'control', 'js' => true, 'content' => 'submit' ])
         );
     }
 
-    function test_itShouldSet_iBem_classOnMixedElement () {
+    public function test_itShouldSet_iBem_classOnMixedElement()
+    {
         $this->assertEquals(
             '<div class="icon button__control i-bem" onclick="return {&quot;button__control&quot;:{}}">submit</div>',
             $this->bh->apply([ 'block' => 'icon', 'content' => 'submit', 'mix' => [ 'block' => 'button', 'elem' => 'control', 'js' => true ]])
         );
     }
 
-    function test_itShouldSet_iBem_classOnMixedBlock () {
+    public function test_itShouldSet_iBem_classOnMixedBlock()
+    {
         $this->assertEquals(
             '<div class="button__box icon i-bem" onclick="return {&quot;icon&quot;:{}}">submit</div>',
             $this->bh->apply([ 'block' => 'button', 'elem' => 'box', 'content' => 'submit', 'mix' => [ 'block' => 'icon', 'js' => true ] ])
@@ -396,17 +433,18 @@ class bhToHtmlJsTest extends PHPUnit_Framework_TestCase {
     }
 }
 
-class bhToHtmlClsTest extends PHPUnit_Framework_TestCase {
-
+class bhToHtmlClsTest extends PHPUnit_Framework_TestCase
+{
     /**
      * @before
      */
-    function setupBhInstance () {
+    public function setupBhInstance()
+    {
         $this->bh = new BH();
     }
 
-    function test_should_set_cls () {
+    public function test_should_set_cls()
+    {
         $this->assertEquals('<div class="clearfix"></div>', $this->bh->apply([ 'cls' => 'clearfix' ]));
     }
-
 }

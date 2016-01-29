@@ -2,9 +2,10 @@
 
 use BEM\BH;
 
-class bh_bemCssClasses extends PHPUnit_Framework_TestCase {
-
-    function test_itShouldParseCssClasses () {
+class bh_bemCssClasses extends PHPUnit_Framework_TestCase
+{
+    public function test_itShouldParseCssClasses()
+    {
         $this->assertEquals(
             [ 'block' => 'button',
               'blockMod' => 'disabled',
@@ -15,5 +16,4 @@ class bh_bemCssClasses extends PHPUnit_Framework_TestCase {
             BH::parseBemCssClasses('button_disabled__control')
         );
     }
-
 }

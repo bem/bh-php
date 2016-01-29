@@ -2,13 +2,14 @@
 
 namespace BEM;
 
-class Mods {
-
+class Mods
+{
     /**
      * Mods
      * @param array [$mods]
      */
-    public function __construct ($mods = null) {
+    public function __construct($mods = null)
+    {
         if (!$mods) {
             return;
         }
@@ -17,8 +18,8 @@ class Mods {
         }
     }
 
-    public function __get ($k) {
+    public function __get($k)
+    {
         // suppress notices in templates
     }
-
 }

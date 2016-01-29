@@ -2,16 +2,18 @@
 
 use BEM\BH;
 
-class stop extends PHPUnit_Framework_TestCase {
-
+class stop extends PHPUnit_Framework_TestCase
+{
     /**
      * @before
      */
-    function setupBhInstance () {
+    public function setupBhInstance()
+    {
         $this->bh = new BH();
     }
 
-    function test_it_should_prevent_base_matching () {
+    public function test_it_should_prevent_base_matching()
+    {
         $this->bh->match('button', function ($ctx) {
             $ctx->tag('button', true);
         });

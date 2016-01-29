@@ -2,16 +2,18 @@
 
 use BEM\BH;
 
-class jsTest extends PHPUnit_Framework_TestCase {
-
+class jsTest extends PHPUnit_Framework_TestCase
+{
     /**
      * @before
      */
-    function setupBhInstance () {
+    public function setupBhInstance()
+    {
         $this->bh = new BH();
     }
 
-    function test_it_should_return_js () {
+    public function test_it_should_return_js()
+    {
         $this->bh->match('button', function ($ctx) {
             $this->assertEquals(
                 true,
@@ -20,7 +22,8 @@ class jsTest extends PHPUnit_Framework_TestCase {
         });
         $this->bh->apply(['block' => 'button', 'js' => true]);
     }
-    function test_it_should_set_js () {
+    public function test_it_should_set_js()
+    {
         $this->bh->match('button', function ($ctx) {
             $ctx->js(true);
         });
@@ -29,7 +32,8 @@ class jsTest extends PHPUnit_Framework_TestCase {
             $this->bh->apply(['block' => 'button'])
         );
     }
-    function test_it_should_not_set_js () {
+    public function test_it_should_not_set_js()
+    {
         $this->bh->match('button', function ($ctx) {
             $ctx->js(false);
         });
@@ -54,7 +58,8 @@ class jsTest extends PHPUnit_Framework_TestCase {
     }
 */
 
-    function test_it_should_extend_user_js () {
+    public function test_it_should_extend_user_js()
+    {
         $this->bh->match('button', function ($ctx) {
             $ctx->js(['a' => 2]);
         });
@@ -63,7 +68,8 @@ class jsTest extends PHPUnit_Framework_TestCase {
             $this->bh->apply(['block' => 'button', 'js' => ['x' => 1]])
         );
     }
-    function test_it_should_not_override_later_declarations () {
+    public function test_it_should_not_override_later_declarations()
+    {
         $this->bh->match('button', function ($ctx) {
             $ctx->js(false);
         });
@@ -75,7 +81,8 @@ class jsTest extends PHPUnit_Framework_TestCase {
             $this->bh->apply(['block' => 'button'])
         );
     }
-    function test_it_should_override_later_declarations_with_force_flag () {
+    public function test_it_should_override_later_declarations_with_force_flag()
+    {
         $this->bh->match('button', function ($ctx) {
             $ctx->js(true, true);
         });
@@ -87,7 +94,8 @@ class jsTest extends PHPUnit_Framework_TestCase {
             $this->bh->apply(['block' => 'button'])
         );
     }
-    function test_it_should_override_user_declarations_with_force_flag () {
+    public function test_it_should_override_user_declarations_with_force_flag()
+    {
         $this->bh->match('button', function ($ctx) {
             $ctx->js(false, true);
         });

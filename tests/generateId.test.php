@@ -2,16 +2,18 @@
 
 use BEM\BH;
 
-class generateIdTest extends PHPUnit_Framework_TestCase {
-
+class generateIdTest extends PHPUnit_Framework_TestCase
+{
     /**
      * @before
      */
-    function setupBhInstance () {
+    public function setupBhInstance()
+    {
         $this->bh = new BH();
     }
 
-    function test_it_should_generate_different_ids () {
+    public function test_it_should_generate_different_ids()
+    {
         $this->bh->match('button', function ($ctx) {
             $this->assertNotEquals(
                 $ctx->generateId(),
@@ -21,7 +23,8 @@ class generateIdTest extends PHPUnit_Framework_TestCase {
         $this->bh->apply(['block' => 'button']);
     }
 
-    function test_it_should_generate_different_ids_within_few_calls_of_apply () {
+    public function test_it_should_generate_different_ids_within_few_calls_of_apply()
+    {
         $id1 = null;
         $id2 = null;
 

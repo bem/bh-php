@@ -1,17 +1,20 @@
 <?php
 
-use BEM\JsonCollection, BEM\Json;
+use BEM\JsonCollection;
+use BEM\Json;
 
-class jsonCollection_normalize extends PHPUnit_Framework_TestCase {
-
-    function test_itShouldCreateCollectionWithOneBlock () {
+class jsonCollection_normalize extends PHPUnit_Framework_TestCase
+{
+    public function test_itShouldCreateCollectionWithOneBlock()
+    {
         $this->assertEquals(
             new JsonCollection([new Json(['block' => 'name'])]),
             JsonCollection::normalize(['block' => 'name'])
         );
     }
 
-    function test_itShouldFlattenDeeps () {
+    public function test_itShouldFlattenDeeps()
+    {
         $this->assertEquals(
             new JsonCollection([
                 new Json(['block' => 'name']),
@@ -28,7 +31,8 @@ class jsonCollection_normalize extends PHPUnit_Framework_TestCase {
         );
     }
 
-    function test_itShouldGracefulyIgnoreHoles () {
+    public function test_itShouldGracefulyIgnoreHoles()
+    {
         $this->assertEquals(
             new JsonCollection([
                 false,
@@ -49,7 +53,8 @@ class jsonCollection_normalize extends PHPUnit_Framework_TestCase {
         );
     }
 
-    function test_itShouldGracefulyIgnoreDeepHoles () {
+    public function test_itShouldGracefulyIgnoreDeepHoles()
+    {
         $this->assertEquals(
             new JsonCollection([
                 false,
@@ -74,7 +79,8 @@ class jsonCollection_normalize extends PHPUnit_Framework_TestCase {
         );
     }
 
-    function test_itShouldGracefulyAppendAnyObjects () {
+    public function test_itShouldGracefulyAppendAnyObjects()
+    {
         $collection = JsonCollection::normalize([
             '1'
         ]);
@@ -95,5 +101,4 @@ class jsonCollection_normalize extends PHPUnit_Framework_TestCase {
             $collection
         );
     }
-
 }

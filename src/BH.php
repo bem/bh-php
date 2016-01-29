@@ -4,9 +4,9 @@ namespace BEM;
 
 require_once "helpers.php";
 
-class BH {
-
-    static public $_toHtmlCallId = 0;
+class BH
+{
+    public static $_toHtmlCallId = 0;
 
     /**
      * Используется для идентификации шаблонов.
@@ -60,7 +60,7 @@ class BH {
 
     protected $ctx = null;
 
-    static protected $selfCloseHtmlTags = [
+    protected static $selfCloseHtmlTags = [
         'area' => 1,
         'base' => 1,
         'br' => 1,
@@ -84,7 +84,8 @@ class BH {
      * BH: BEMJSON -> HTML процессор.
      * @constructor
      */
-    function __construct () {
+    public function __construct()
+    {
         $this->lib = new \ArrayObject([], \ArrayObject::ARRAY_AS_PROPS);
     }
 
@@ -100,7 +101,8 @@ class BH {
      *                     `json` — JSON-формат. Получаем `{ ... }`.
      * @return BH $this
      */
-    function setOptions ($options) {
+    public function setOptions($options)
+    {
         $this->_options = [];
         foreach ($options as $k => $option) {
             $this->_options[$k] = $options[$k];
@@ -138,7 +140,8 @@ class BH {
      *
      * @return array
      */
-    function getOptions () {
+    public function getOptions()
+    {
         return $this->_options;
     }
 
@@ -149,7 +152,8 @@ class BH {
      * @param boolean enable
      * @return BH
      */
-    function enableInfiniteLoopDetection ($enable) {
+    public function enableInfiniteLoopDetection($enable)
+    {
         $this->_infiniteLoopDetection = $enable;
         return $this;
     }
@@ -160,7 +164,8 @@ class BH {
      * @param BemJson $bemJson
      * @return string
      */
-    function apply ($bemJson) {
+    public function apply($bemJson)
+    {
         return $this->toHtml($this->processBemJson($bemJson));
     }
 
@@ -199,7 +204,8 @@ class BH {
      * @param callable [$matcher]
      * @return BH
      */
-    function match ($expr, $matcher = null) {
+    public function match($expr, $matcher = null)
+    {
         if (!$expr) {
             return $this;
         }
@@ -243,7 +249,8 @@ class BH {
      * @param Closure $matcher
      * @return BH
      */
-    function beforeEach ($matcher) {
+    public function beforeEach($matcher)
+    {
         return $this->match('$before', $matcher);
     }
 
@@ -259,7 +266,8 @@ class BH {
      * @param Closure $matcher
      * @return BH
      */
-    function afterEach ($matcher) {
+    public function afterEach($matcher)
+    {
         return $this->match('$after', $matcher);
     }
 
@@ -270,7 +278,8 @@ class BH {
      * @param String $fnId
      * @param Number $index
      */
-    static protected function pushMatcher(&$res, $fnId, $index) {
+    protected static function pushMatcher(&$res, $fnId, $index)
+    {
         $res[] = ('      $json->_m[' . $fnId . '] = true;');
         $res[] = ('      $subRes = $ms[' . $index . ']["fn"]($ctx, $json);');
         $res[] = ('      if ($subRes !== null) { return ($subRes ?: ""); }');
@@ -281,7 +290,8 @@ class BH {
      * Вспомогательный метод для компиляции шаблонов с целью их быстрого дальнейшего исполнения.
      * @return string
      */
-    function buildMatcher () {
+    public function buildMatcher()
+    {
         $res = [];
         $vars = []; //'$bh = $this'];
         $allMatchers = $this->_matchers;
@@ -363,8 +373,11 @@ class BH {
     protected $_matcherCalls = 0;
     protected $_matcher = null;
 
-    function getMatcher () {
-        if ($this->_matcher) return $this->_matcher;
+    public function getMatcher()
+    {
+        if ($this->_matcher) {
+            return $this->_matcher;
+        }
 
         // debugging purposes only (!!!)
         // $key = md5(join('|', array_map(function ($e) { return $e['expr']; }, $this->_matchers)));
@@ -390,7 +403,8 @@ class BH {
      * @param boolean [$ignoreContent]
      * @return Json
      */
-    function processBemJson ($bemJson, $blockName = null, $ignoreContent = null) {
+    public function processBemJson($bemJson, $blockName = null, $ignoreContent = null)
+    {
         if (empty($bemJson)) {
             return is_array($bemJson)
                 ? '<div></div>'
@@ -435,7 +449,9 @@ class BH {
         );
 
         // var compiledMatcher = (this._fastMatcher || (this._fastMatcher = Function('ms', this.buildMatcher())(this._matchers)));
-        if (!$this->_matcher) $this->getMatcher();
+        if (!$this->_matcher) {
+            $this->getMatcher();
+        }
         $compiledMatcher = $this->_matcher;
 
         $processContent = !$ignoreContent;
@@ -478,7 +494,6 @@ class BH {
             if (is_scalar($json) || empty($json)) {
                 // skip
                 continue;
-
             } elseif ($json->elem) {
                 $blockName = $json->block = $json->block ?: $blockName;
                 if (!isset($json->elemMods)) {
@@ -486,7 +501,6 @@ class BH {
                     $json->mods = null;
                 }
                 $blockMods = $json->mods = isset($json->mods) ? $json->mods : $blockMods;
-
             } elseif ($json->block) {
                 $blockName = $json->block;
                 $blockMods = $json->mods;
@@ -556,7 +570,8 @@ class BH {
      * @param BemJson $json
      * @return string
      */
-    public function toHtml ($json) {
+    public function toHtml($json)
+    {
         $this->_buf = '';
         $this->_html($json);
         $buf = $this->_buf;
@@ -564,7 +579,8 @@ class BH {
         return $buf;
     }
 
-    public function _html ($json) {
+    public function _html($json)
+    {
         if (!$json) {
             $this->_buf .= (string)$json;
             return;
@@ -657,7 +673,9 @@ class BH {
             }
 
             if ($jsParams) {
-                if ($addJSInitClass) $cls .= ' ' . $this->_optJsCls;
+                if ($addJSInitClass) {
+                    $cls .= ' ' . $this->_optJsCls;
+                }
                 $jsData = !$hasMixJsParams && $json->js === true ?
                     '{&quot;' . $base . '&quot;:{}}' :
                     self::attrEscape(str_replace('[]', '{}',
@@ -683,7 +701,6 @@ class BH {
         $this->_buf .= '>';
         if (!empty($json->html)) {
             $this->_buf .= $json->html;
-
         } elseif ($json->content !== null) {
             $this->_html($json->content);
         }
@@ -691,18 +708,21 @@ class BH {
     }
 
     // todo: add encoding here
-    public static function xmlEscape($s) {
+    public static function xmlEscape($s)
+    {
         return htmlspecialchars($s, ENT_NOQUOTES);
     }
 
-    public static function attrEscape($s) {
+    public static function attrEscape($s)
+    {
         if (is_bool($s)) {
             return $s ? 'true' : 'false';
         }
         return htmlspecialchars($s, ENT_QUOTES);
     }
 
-    public static function toBemCssClasses($json, $base, $parentBase = null, $nobase = false) {
+    public static function toBemCssClasses($json, $base, $parentBase = null, $nobase = false)
+    {
         $res = '';
 
         if ($parentBase !== $base) {
@@ -724,15 +744,16 @@ class BH {
     }
 
     // @todo fixup hardcoded leveling
-    public static function parseBemCssClasses ($expr) {
-        list ($blockBits, $elemBits) = explode('__', $expr . "__\1");
+    public static function parseBemCssClasses($expr)
+    {
+        list($blockBits, $elemBits) = explode('__', $expr . "__\1");
 
-        list ($block, $blockMod, $blockModVal) = explode('_', $blockBits . "_\1_\1");
+        list($block, $blockMod, $blockModVal) = explode('_', $blockBits . "_\1_\1");
         $blockMod = $blockMod === "\1" ? null : $blockMod;
         $blockModVal = $blockMod ? ($blockModVal !== "\1" ? $blockModVal : true) : null;
 
         if ($elemBits !== "\1") {
-            list ($elem, $elemMod, $elemModVal) = explode('_', $elemBits . "_\1_\1_\1");
+            list($elem, $elemMod, $elemModVal) = explode('_', $elemBits . "_\1_\1_\1");
             $elemMod = $elemMod === "\1" ? null : $elemMod;
             $elemModVal = $elemMod ? ($elemModVal !== "\1" ? $elemModVal : true) : null;
         }
@@ -746,7 +767,8 @@ class BH {
      * @param string key
      * @return array
      */
-    public static function groupBy ($data, $key) {
+    public static function groupBy($data, $key)
+    {
         $res = [];
         for ($i = 0, $l = sizeof($data); $i < $l; $i++) {
             $item = $data[$i];
@@ -759,7 +781,8 @@ class BH {
         return $res;
     }
 
-    protected static function _filterNulls ($arr) {
+    protected static function _filterNulls($arr)
+    {
         return array_filter($arr, function ($e) {
             return $e !== null;
         });

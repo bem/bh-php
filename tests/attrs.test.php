@@ -2,16 +2,18 @@
 
 use BEM\BH;
 
-class attrsTest extends PHPUnit_Framework_TestCase {
-
+class attrsTest extends PHPUnit_Framework_TestCase
+{
     /**
      * @before
      */
-    function setupBhInstance () {
+    public function setupBhInstance()
+    {
         $this->bh = new BH();
     }
 
-    function test_it_should_return_empty_attrs () {
+    public function test_it_should_return_empty_attrs()
+    {
         $this->bh->match('button', function ($ctx) {
             $attrs = $ctx->attrs();
             $this->assertInternalType('array', $attrs);
@@ -20,14 +22,16 @@ class attrsTest extends PHPUnit_Framework_TestCase {
         $this->bh->apply(['block' => 'button']);
     }
 
-    function test_it_should_return_attrs () {
+    public function test_it_should_return_attrs()
+    {
         $this->bh->match('button', function ($ctx) {
             $this->assertEquals('button', $ctx->attrs()['type']);
         });
         $this->bh->apply(['block' => 'button', 'attrs' => ['type' => 'button']]);
     }
 
-    function test_it_should_set_attrs () {
+    public function test_it_should_set_attrs()
+    {
         $this->bh->match('checkbox', function ($ctx) {
             $ctx->attrs([
                 'name' => null,
@@ -43,7 +47,8 @@ class attrsTest extends PHPUnit_Framework_TestCase {
         );
     }
 
-    function test_it_should_not_override_user_attrs () {
+    public function test_it_should_not_override_user_attrs()
+    {
         $this->bh->match('button', function ($ctx) {
             $ctx->attrs([
                 'type' => 'button',
@@ -63,7 +68,8 @@ class attrsTest extends PHPUnit_Framework_TestCase {
         );
     }
 
-    function test_it_should_not_override_later_declarations () {
+    public function test_it_should_not_override_later_declarations()
+    {
         $this->bh->match('button', function ($ctx) {
             $ctx->attrs(['type' => 'control', 'tabindex' => 0]);
         });
@@ -76,7 +82,8 @@ class attrsTest extends PHPUnit_Framework_TestCase {
         );
     }
 
-    function test_it_should_override_later_declarations_with_force_flag () {
+    public function test_it_should_override_later_declarations_with_force_flag()
+    {
         $this->bh->match('button', function ($ctx) {
             $ctx->attrs(['type' => 'control'], true);
         });
@@ -87,7 +94,8 @@ class attrsTest extends PHPUnit_Framework_TestCase {
             $this->bh->apply(['block' => 'button']));
     }
 
-    function test_it_should_override_user_declarations_with_force_flag () {
+    public function test_it_should_override_user_declarations_with_force_flag()
+    {
         $this->bh->match('button', function ($ctx) {
             $ctx->attrs([
                 'type' => 'button',

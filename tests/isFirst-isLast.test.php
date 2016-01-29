@@ -2,16 +2,18 @@
 
 use BEM\BH;
 
-class isFirstLastTest extends PHPUnit_Framework_TestCase {
-
+class isFirstLastTest extends PHPUnit_Framework_TestCase
+{
     /**
      * @before
      */
-    function setupBhInstance () {
+    public function setupBhInstance()
+    {
         $this->bh = new BH();
     }
 
-    function test_it_should_calc_isFirst_isLast () {
+    public function test_it_should_calc_isFirst_isLast()
+    {
         $this->bh->match('button__inner', function ($ctx) {
             if ($ctx->isFirst()) {
                 $ctx->mod('first', 'yes');
@@ -31,7 +33,8 @@ class isFirstLastTest extends PHPUnit_Framework_TestCase {
         );
     }
 
-    function test_it_should_calc_isFirst_isLast_with_array_mes__s () {
+    public function test_it_should_calc_isFirst_isLast_with_array_mes__s()
+    {
         $this->bh->match('button__inner', function ($ctx) {
             if ($ctx->isFirst()) {
                 $ctx->mod('first', 'yes');
@@ -56,7 +59,8 @@ class isFirstLastTest extends PHPUnit_Framework_TestCase {
         );
     }
 
-    function test_it_should_calc_isFirst_isLast_for_single_elemen__t () {
+    public function test_it_should_calc_isFirst_isLast_for_single_elemen__t()
+    {
         $this->bh->match('button__inner', function ($ctx) {
             if ($ctx->isFirst()) {
                 $ctx->mod('first', 'yes');
@@ -73,7 +77,8 @@ class isFirstLastTest extends PHPUnit_Framework_TestCase {
         );
     }
 
-    function test_it_should_ignore_empty_array_items () {
+    public function test_it_should_ignore_empty_array_items()
+    {
         $this->bh->match('button', function ($ctx) {
             if ($ctx->isFirst()) {
                 $ctx->mod('first', 'yes');

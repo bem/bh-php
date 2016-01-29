@@ -2,16 +2,18 @@
 
 use BEM\BH;
 
-class applyBaseTest extends PHPUnit_Framework_TestCase {
-
+class applyBaseTest extends PHPUnit_Framework_TestCase
+{
     /**
      * @before
      */
-    function setupBhInstance () {
+    public function setupBhInstance()
+    {
         $this->bh = new BH();
     }
 
-    function test_it_should_apply_templates_for_new_mod () {
+    public function test_it_should_apply_templates_for_new_mod()
+    {
         $this->bh->match('button', function ($ctx) {
             $ctx->mod('type', 'span');
             $ctx->applyBase();
@@ -25,7 +27,8 @@ class applyBaseTest extends PHPUnit_Framework_TestCase {
         );
     }
 
-    function test_it_should_apply_base_matcher_for_element () {
+    public function test_it_should_apply_base_matcher_for_element()
+    {
         $this->bh->match('button__control', function ($ctx) {
             $ctx->mod('type', 'span');
             $ctx->applyBase();
@@ -39,7 +42,8 @@ class applyBaseTest extends PHPUnit_Framework_TestCase {
         );
     }
 
-    function test_it_should_apply_base_matcher_for_content () {
+    public function test_it_should_apply_base_matcher_for_content()
+    {
         $this->bh->match('button', function ($ctx) {
             $ctx->content([
                 ['elem' => 'base-before'],
@@ -67,7 +71,8 @@ class applyBaseTest extends PHPUnit_Framework_TestCase {
         );
     }
 
-    function test_it_should_apply_base_matcher_while_wrapping () {
+    public function test_it_should_apply_base_matcher_while_wrapping()
+    {
         $this->bh->match('button', function ($ctx) {
             return [
                 ['elem' => 'base-before'],
@@ -95,7 +100,8 @@ class applyBaseTest extends PHPUnit_Framework_TestCase {
         );
     }
 
-    function test_it_should_preserve_tParam () {
+    public function test_it_should_preserve_tParam()
+    {
         $this->bh->match('select__control', function ($ctx) {
             $ctx->tParam('lol', 33);
         });
@@ -113,7 +119,8 @@ class applyBaseTest extends PHPUnit_Framework_TestCase {
         $this->bh->apply(['block' => 'select', 'mods' => ['disabled' => true], 'content' => ['elem' => 'control']]);
     }
 
-    function test_it_should_preserve_position () {
+    public function test_it_should_preserve_position()
+    {
         $this->bh->match('button', function ($ctx) {
             if ($ctx->isFirst()) {
                 $ctx->mod('first', 'yes');

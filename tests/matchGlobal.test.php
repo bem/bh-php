@@ -2,17 +2,19 @@
 
 use BEM\BH;
 
-class bhMatchGlobalTest extends PHPUnit_Framework_TestCase {
-
+class bhMatchGlobalTest extends PHPUnit_Framework_TestCase
+{
     /**
      * @before
      */
-    function setupBhInstance () {
+    public function setupBhInstance()
+    {
         $this->bh = new BH();
     }
 
-    function test_it_should_apply_beforeEach_template () {
-        $this->bh->beforeEach(function($ctx) {
+    public function test_it_should_apply_beforeEach_template()
+    {
+        $this->bh->beforeEach(function ($ctx) {
             $ctx->tag('b');
             $ctx->bem(false);
         });
@@ -26,14 +28,15 @@ class bhMatchGlobalTest extends PHPUnit_Framework_TestCase {
         );
     }
 
-    function test_it_should_match_beforeEach_before_other_template () {
-        $this->bh->match('button', function($ctx) {
+    public function test_it_should_match_beforeEach_before_other_template()
+    {
+        $this->bh->match('button', function ($ctx) {
             $ctx->tag('button');
         });
-        $this->bh->beforeEach(function($ctx) {
+        $this->bh->beforeEach(function ($ctx) {
             $ctx->tag('span');
         });
-        $this->bh->match('button', function($ctx) {
+        $this->bh->match('button', function ($ctx) {
             $ctx->tag('strong');
         });
         $this->assertEquals(
@@ -42,11 +45,12 @@ class bhMatchGlobalTest extends PHPUnit_Framework_TestCase {
         );
     }
 
-    function test_it_should_apply_several_beforeEach_templates_in_proper_order () {
-        $this->bh->beforeEach(function($ctx, $json) {
+    public function test_it_should_apply_several_beforeEach_templates_in_proper_order()
+    {
+        $this->bh->beforeEach(function ($ctx, $json) {
             $json->cls .= '2';
         });
-        $this->bh->beforeEach(function($ctx, $json) {
+        $this->bh->beforeEach(function ($ctx, $json) {
             $json->cls .= '1';
         });
         $this->assertEquals(
@@ -56,7 +60,8 @@ class bhMatchGlobalTest extends PHPUnit_Framework_TestCase {
     }
 
 
-    function test_it_should_apply_afterEach_template () {
+    public function test_it_should_apply_afterEach_template()
+    {
         $this->bh->afterEach(function ($ctx) {
             $ctx->tag('b');
             $ctx->bem(false);
@@ -71,7 +76,8 @@ class bhMatchGlobalTest extends PHPUnit_Framework_TestCase {
         );
     }
 
-    function test_it_should_match_afterEach_after_other_template () {
+    public function test_it_should_match_afterEach_after_other_template()
+    {
         $this->bh->match('button', function ($ctx) {
             $ctx->tag('button', true);
         });
@@ -88,7 +94,8 @@ class bhMatchGlobalTest extends PHPUnit_Framework_TestCase {
         );
     }
 
-    function test_it_should_apply_several_afterEach_templates_in_proper_order () {
+    public function test_it_should_apply_several_afterEach_templates_in_proper_order()
+    {
         $this->bh->afterEach(function ($ctx, $json) {
             $json->cls .= '2';
         });

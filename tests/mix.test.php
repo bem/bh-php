@@ -1,17 +1,21 @@
 <?php
 
-use BEM\BH, BEM\JsonCollection, BEM\Json;
+use BEM\BH;
+use BEM\JsonCollection;
+use BEM\Json;
 
-class mixTest extends PHPUnit_Framework_TestCase {
-
+class mixTest extends PHPUnit_Framework_TestCase
+{
     /**
      * @before
      */
-    function setupBhInstance () {
+    public function setupBhInstance()
+    {
         $this->bh = new BH();
     }
 
-    function test_it_should_return_mix () {
+    public function test_it_should_return_mix()
+    {
         $this->bh->match('button', function ($ctx) {
             $this->assertEquals(
                 JsonCollection::normalize(['block' => 'mix']),
@@ -21,7 +25,8 @@ class mixTest extends PHPUnit_Framework_TestCase {
         $this->bh->apply(['block' => 'button', 'mix' => ['block' => 'mix']]);
     }
 
-    function test_it_should_set_single_mix () {
+    public function test_it_should_set_single_mix()
+    {
         $this->bh->match('button', function ($ctx) {
             $ctx->mix(['block' => 'mix']);
         });
@@ -31,7 +36,8 @@ class mixTest extends PHPUnit_Framework_TestCase {
         );
     }
 
-    function test_it_should_set_array_mix () {
+    public function test_it_should_set_array_mix()
+    {
         $this->bh->match('button', function ($ctx) {
             $ctx->mix([['block' => 'mix']]);
         });
@@ -41,7 +47,8 @@ class mixTest extends PHPUnit_Framework_TestCase {
         );
     }
 
-    function test_it_should_extend_user_single_mix () {
+    public function test_it_should_extend_user_single_mix()
+    {
         $this->bh->match('button', function ($ctx) {
             $ctx->mix(['block' => 'mix2']);
         });
@@ -51,7 +58,8 @@ class mixTest extends PHPUnit_Framework_TestCase {
         );
     }
 
-    function test_it_should_extend_user_array_mix () {
+    public function test_it_should_extend_user_array_mix()
+    {
         $this->bh->match('button', function ($ctx) {
             $ctx->mix([['block' => 'mix']]);
         });
@@ -61,7 +69,8 @@ class mixTest extends PHPUnit_Framework_TestCase {
         );
     }
 
-    function test_it_should_extend_later_declarations () {
+    public function test_it_should_extend_later_declarations()
+    {
         $this->bh->match('button', function ($ctx) {
             $ctx->mix(['block' => 'mix2']);
         });
@@ -74,7 +83,8 @@ class mixTest extends PHPUnit_Framework_TestCase {
         );
     }
 
-    function test_it_should_override_later_declarations_with_force_flag () {
+    public function test_it_should_override_later_declarations_with_force_flag()
+    {
         $this->bh->match('button', function ($ctx) {
             $ctx->mix(['block' => 'mix2'], true);
         });
@@ -87,7 +97,8 @@ class mixTest extends PHPUnit_Framework_TestCase {
         );
     }
 
-    function test_it_should_override_user_declarations_with_force_flag () {
+    public function test_it_should_override_user_declarations_with_force_flag()
+    {
         $this->bh->match('button', function ($ctx) {
             $ctx->mix(['block' => 'mix'], true);
         });
@@ -97,7 +108,8 @@ class mixTest extends PHPUnit_Framework_TestCase {
         );
     }
 
-    function test_it_should_inherit_block_name () {
+    public function test_it_should_inherit_block_name()
+    {
         $this->bh->match('button', function ($ctx) {
             $ctx->mix([
                 ['mods' => ['disabled' => true]],
@@ -111,7 +123,8 @@ class mixTest extends PHPUnit_Framework_TestCase {
         );
     }
 
-    function test_it_should_inherit_element_name () {
+    public function test_it_should_inherit_element_name()
+    {
         $this->bh->match('button__control', function ($ctx) {
             $ctx->mix([
                 ['mods' => ['disabled' => true]],

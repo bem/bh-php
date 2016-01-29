@@ -2,16 +2,18 @@
 
 use BEM\BH;
 
-class processTest extends PHPUnit_Framework_TestCase {
-
+class processTest extends PHPUnit_Framework_TestCase
+{
     /**
      * @before
      */
-    function setupBhInstance () {
+    public function setupBhInstance()
+    {
         $this->bh = new BH();
     }
 
-    function test_it_should_return_valid_processed_json () {
+    public function test_it_should_return_valid_processed_json()
+    {
         $this->bh->match('search', function ($ctx) {
             $ctx->content($ctx->process([ 'block' => 'input' ]));
         });
@@ -24,7 +26,8 @@ class processTest extends PHPUnit_Framework_TestCase {
         );
     }
 
-    function test_it_should_return_valid_processed_element_with_no_block_name () {
+    public function test_it_should_return_valid_processed_element_with_no_block_name()
+    {
         $this->bh->match('button', function ($ctx) {
             $ctx->content($ctx->process([ 'elem' => 'inner' ]));
         });

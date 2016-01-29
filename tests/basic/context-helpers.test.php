@@ -1,8 +1,9 @@
 <?php
 
-class context_helpersTest extends PHPUnit_Framework_BHTestCase {
-
-    function test_isArray () {
+class context_helpersTest extends PHPUnit_Framework_BHTestCase
+{
+    public function test_isArray()
+    {
         $falsyArr = [];
         $falsyArr[1] = '';
         $falsyObj = new \ArrayObject();
@@ -17,9 +18,9 @@ class context_helpersTest extends PHPUnit_Framework_BHTestCase {
         $this->assertFalse($this->ctx->isArray($falsyObj));
     }
 
-    function test_phpize () {
+    public function test_phpize()
+    {
         $this->assertInstanceOf('\\BEM\\JsonCollection', $this->ctx->phpize([]));
         $this->assertInstanceOf('\\BEM\\Json', $this->ctx->phpize(['block' => 'name']));
     }
-
 }

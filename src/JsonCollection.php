@@ -4,14 +4,16 @@ namespace BEM;
 
 require_once "helpers.php";
 
-class JsonCollection extends \ArrayObject {
-
-    public function __construct($input = []) {
+class JsonCollection extends \ArrayObject
+{
+    public function __construct($input = [])
+    {
         parent::__construct($input);
         $this->_updateIndexes();
     }
 
-    public function append ($obj) {
+    public function append($obj)
+    {
         if ($obj instanceof \Iterator || isList($obj)) {
             // rollup lists
             foreach ($obj as $item) {
@@ -27,7 +29,8 @@ class JsonCollection extends \ArrayObject {
 
     public $_listLength = 0;
 
-    protected function _updateIndexes () {
+    protected function _updateIndexes()
+    {
         $j = 0;
         foreach ($this as $item) {
             if ($item instanceof Json) {
@@ -42,7 +45,8 @@ class JsonCollection extends \ArrayObject {
      * @param  array|object $bemJson
      * @return JsonCollection
      */
-    public static function normalize ($bemJson) {
+    public static function normalize($bemJson)
+    {
         switch (true) {
             // instance of JsonCollection
             case $bemJson instanceof self:
@@ -91,7 +95,8 @@ class JsonCollection extends \ArrayObject {
      * @param mixed $node
      * @return string|number|Json
      */
-    public static function normalizeItem ($node) {
+    public static function normalizeItem($node)
+    {
         if (is_scalar($node) || is_null($node)) {
             return $node;
         }
@@ -112,7 +117,8 @@ class JsonCollection extends \ArrayObject {
      * @param  array $a
      * @return array
      */
-    public static function flattenList ($a) {
+    public static function flattenList($a)
+    {
         if (!isList($a)) {
             return $a;
         }
@@ -144,5 +150,4 @@ class JsonCollection extends \ArrayObject {
 
         return $a;
     }
-
 }

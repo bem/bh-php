@@ -2,28 +2,32 @@
 
 use BEM\BH;
 
-class bhMatchTest extends PHPUnit_Framework_TestCase {
-
+class bhMatchTest extends PHPUnit_Framework_TestCase
+{
     /**
      * @before
      */
-    function setupBhInstance () {
+    public function setupBhInstance()
+    {
         $this->bh = new BH();
     }
 
-    function test_it_should_not_create_invalid_matcher () {
-        $this->bh->match(false, function() {});
+    public function test_it_should_not_create_invalid_matcher()
+    {
+        $this->bh->match(false, function () {});
         $this->assertEquals('', $this->bh->apply(''));
     }
 
-    function test_it_should_allow_to_use_chaining () {
+    public function test_it_should_allow_to_use_chaining()
+    {
         $this->assertEquals(
             $this->bh,
-            $this->bh->match('button', function() {})
+            $this->bh->match('button', function () {})
         );
     }
 
-    function test_it_should_match_on_elem_of_block_with_modifier () {
+    public function test_it_should_match_on_elem_of_block_with_modifier()
+    {
         $this->bh->match('button_disabled__control', function ($ctx) {
             $ctx->tag('input');
         });
@@ -38,7 +42,8 @@ class bhMatchTest extends PHPUnit_Framework_TestCase {
         );
     }
 
-    function test_it_should_allow_to_use_a_few_matchers_in_one_call_n1 () {
+    public function test_it_should_allow_to_use_a_few_matchers_in_one_call_n1()
+    {
         $this->bh->match([
             'button' => function ($ctx) {
                 $ctx->tag('button');
@@ -54,7 +59,8 @@ class bhMatchTest extends PHPUnit_Framework_TestCase {
         );
     }
 
-    function test_it_should_allow_to_use_a_few_matchers_in_one_call_n2 () {
+    public function test_it_should_allow_to_use_a_few_matchers_in_one_call_n2()
+    {
         $this->bh->match(
             [
                 'item__mark',
@@ -80,7 +86,8 @@ class bhMatchTest extends PHPUnit_Framework_TestCase {
         );
     }
 
-    function test_it_should_match_string_mods () {
+    public function test_it_should_match_string_mods()
+    {
         $this->bh->match('button_type_link', function ($ctx) {
             $ctx->tag('a');
         });
@@ -90,11 +97,12 @@ class bhMatchTest extends PHPUnit_Framework_TestCase {
         );
     }
 
-    function test_it_should_match_new_mods () {
-        $this->bh->match('button_disabled', function($ctx) {
+    public function test_it_should_match_new_mods()
+    {
+        $this->bh->match('button_disabled', function ($ctx) {
             $ctx->tag('span');
         });
-        $this->bh->match('button', function($ctx) {
+        $this->bh->match('button', function ($ctx) {
             $ctx->mod('disabled', true);
             $ctx->applyBase();
         });
@@ -103,15 +111,16 @@ class bhMatchTest extends PHPUnit_Framework_TestCase {
             $this->bh->apply([ 'block' => 'button' ]));
     }
 
-    function test_it_should_match_new_mods2 () {
-        $this->bh->match('button_visible', function($ctx) {
+    public function test_it_should_match_new_mods2()
+    {
+        $this->bh->match('button_visible', function ($ctx) {
             $ctx->tag('a');
         });
-        $this->bh->match('button_disabled', function($ctx) {
+        $this->bh->match('button_disabled', function ($ctx) {
             $ctx->mod('visible', true);
             $ctx->mix([ 'block' => 'clearfix' ]);
         });
-        $this->bh->match('button', function($ctx) {
+        $this->bh->match('button', function ($ctx) {
             $ctx->mod('disabled', true);
         });
         $this->assertEquals(
@@ -119,7 +128,8 @@ class bhMatchTest extends PHPUnit_Framework_TestCase {
             $this->bh->apply([ 'block' => 'button', 'mods' => [ 'disabled' => true ] ]));
     }
 
-    function test_it_should_not_fail_on_non_identifier_mods () {
+    public function test_it_should_not_fail_on_non_identifier_mods()
+    {
         $this->bh->match('button_is-bem_yes__control', function ($ctx) {
             $ctx->content('Hello');
         });
@@ -129,7 +139,8 @@ class bhMatchTest extends PHPUnit_Framework_TestCase {
         );
     }
 
-    function test_it_should_match_boolean_mods () {
+    public function test_it_should_match_boolean_mods()
+    {
         $this->bh->match('button_disabled', function ($ctx) {
             $ctx->attr('disabled', 'disabled');
         });
@@ -139,7 +150,8 @@ class bhMatchTest extends PHPUnit_Framework_TestCase {
         );
     }
 
-    function test_it_should_not_match_string_values_of_boolean_mods () {
+    public function test_it_should_not_match_string_values_of_boolean_mods()
+    {
         $this->bh->match('button_type', function ($ctx) {
             $ctx->tag('span');
         });
@@ -149,7 +161,8 @@ class bhMatchTest extends PHPUnit_Framework_TestCase {
         );
     }
 
-    function test_it_should_not_match_block_mods_when__elem__is_present () {
+    public function test_it_should_not_match_block_mods_when__elem__is_present()
+    {
         $this->bh->match('button_disabled__control', function ($ctx) {
             $ctx->tag('span', true);
         });
@@ -162,7 +175,8 @@ class bhMatchTest extends PHPUnit_Framework_TestCase {
         );
     }
 
-    function test_it_should_properly_match_inherited_block_mods () {
+    public function test_it_should_properly_match_inherited_block_mods()
+    {
         $this->bh->match('button_visibility_hidden__control', function ($ctx) {
             $ctx->mod('foo', 'bar');
         });
@@ -191,7 +205,8 @@ class bhMatchTest extends PHPUnit_Framework_TestCase {
         );
     }
 
-    function test_it_should_properly_match_elem_mods () {
+    public function test_it_should_properly_match_elem_mods()
+    {
         $this->bh->match('button', function ($ctx) {
             $ctx->content(['elem' => 'control']);
         });
@@ -205,7 +220,8 @@ class bhMatchTest extends PHPUnit_Framework_TestCase {
         );
     }
 
-    function test_it_should_recursively_call_matchers () {
+    public function test_it_should_recursively_call_matchers()
+    {
         $this->bh->match('X__x', function ($ctx, $json) {
             $ctx->bem(false);
             $ctx->tag('b');
