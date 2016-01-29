@@ -3,3 +3,4 @@ composer.lock
 /node_modules
 /build
 /tmp
+/coverage
