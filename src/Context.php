@@ -27,6 +27,9 @@ class Context
 
     public $mix;
 
+    /** @var Step */
+    public $node;
+
     /**
      * Context constructor
      * @param \BEM\BH $bh parent class
@@ -58,7 +61,7 @@ class Context
      * ```javascript
      * obj = ctx.extend(obj, {a: 1});
      * ```
-     * @param array $target
+     * @param array|Mods $target
      * @return array
      */
     public function extend($target)
@@ -184,14 +187,15 @@ class Context
     /**
      * Применяет матчинг для переданного фрагмента BEMJSON.
      * Возвращает результат преобразований.
-     * @param BemJson $bemJson
+     * @param Json|array|string $bemjson
      * @return array
      */
-    public function process($bemJson)
+    public function process($bemjson)
     {
         $prevCtx = $this->ctx;
+        /** @var Step $prevNode */
         $prevNode = $this->node;
-        $res = $this->bh->processBemJson($bemJson, $prevCtx->block);
+        $res = $this->bh->processBemjson($bemjson, $prevCtx->block);
         $this->ctx = $prevCtx;
         $this->node = $prevNode;
         return $res;
@@ -199,7 +203,8 @@ class Context
 
     /**
      * Выполняет преобразования данного BEMJSON-элемента остальными шаблонами.
-     * Может понадобиться, например, чтобы добавить элемент в самый конец содержимого, если в базовых шаблонах в конец содержимого добавляются другие элементы.
+     * Может понадобиться, например, чтобы добавить элемент в самый конец содержимого,
+     * если в базовых шаблонах в конец содержимого добавляются другие элементы.
      * Пример:
      * ```javascript
      * bh.match('header', function(ctx) {
@@ -216,6 +221,7 @@ class Context
      *    ], true);
      * });
      * ```
+     *
      * @return Context
      */
     public function applyBase()
@@ -226,6 +232,7 @@ class Context
         $block = $json->block;
         $blockMods = $json->mods;
 
+        /** @var \Closure $fm */
         $fm = $this->bh->getMatcher();
         $subRes = $fm($this, $json);
         if ($subRes !== null) {
@@ -365,7 +372,7 @@ class Context
      *     ]);
      * });
      * ```
-     * @param array|BemJson [$mix]
+     * @param Json|array|string [$mix]
      * @param boolean [$force]
      * @return array|null|Context
      */
@@ -418,7 +425,7 @@ class Context
      * ```
      * @param array [$values]
      * @param boolean [$force]
-     * @return {Object|Context
+     * @return Object|Context
      */
     public function attrs(array $values = null, $force = false)
     {
@@ -528,10 +535,10 @@ class Context
     {
         // get
         if (func_num_args() === 1) {
-            return key_exists($key, $this->ctx) ? $this->ctx->$key : null;
+            return property_exists($this->ctx, $key) ? $this->ctx->$key : null;
         }
         // set
-        if (!key_exists($key, $this->ctx) || $force) {
+        if (!property_exists($this->ctx, $key) || $force) {
             $this->ctx->$key = $value;
         }
         return $this;
@@ -545,9 +552,9 @@ class Context
      *     ctx.content({ elem: 'control' });
      * });
      * ```
-     * @param BemJson [$value]
+     * @param Json|array|string [$value]
      * @param boolean [$force]
-     * @return BemJson|Context
+     * @return Json|array|string|Context
      */
     public function content($value = null, $force = false)
     {

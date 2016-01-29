@@ -6,8 +6,6 @@ require_once "helpers.php";
 
 class BH
 {
-    public static $_toHtmlCallId = 0;
-
     /**
      * Используется для идентификации шаблонов.
      * Каждому шаблону дается уникальный id для того, чтобы избежать повторного применения
@@ -33,7 +31,7 @@ class BH
      * $bh->lib->objects = bh.lib.objects || [];
      * $bh->lib->objects.inverse = bh.lib.objects.inverse || function(obj) { ... };
      * ```
-     * @var ArrayObject
+     * @var \ArrayObject
      */
     public $lib;
 
@@ -149,7 +147,7 @@ class BH
      * Включает/выключает механизм определения зацикливаний.
      *
      * @chainable
-     * @param boolean enable
+     * @param boolean $enable
      * @return BH
      */
     public function enableInfiniteLoopDetection($enable)
@@ -161,12 +159,12 @@ class BH
     /**
      * Преобразует BEMJSON в HTML-код
      *
-     * @param BemJson $bemJson
+     * @param Json|array|string $bemjson
      * @return string
      */
-    public function apply($bemJson)
+    public function apply($bemjson)
     {
-        return $this->toHtml($this->processBemJson($bemJson));
+        return $this->toHtml($this->processBemjson($bemjson));
     }
 
     /**
@@ -246,7 +244,7 @@ class BH
      * });
      * ```
      *
-     * @param Closure $matcher
+     * @param \Closure $matcher
      * @return BH
      */
     public function beforeEach($matcher)
@@ -263,7 +261,7 @@ class BH
      * });
      * ```
      *
-     * @param Closure $matcher
+     * @param \Closure $matcher
      * @return BH
      */
     public function afterEach($matcher)
@@ -274,9 +272,9 @@ class BH
     /**
      * Вставляет вызов шаблона в очередь вызова.
      *
-     * @param Array $res
-     * @param String $fnId
-     * @param Number $index
+     * @param array $res
+     * @param string $fnId
+     * @param int $index
      */
     protected static function pushMatcher(&$res, $fnId, $index)
     {
@@ -293,13 +291,11 @@ class BH
     public function buildMatcher()
     {
         $res = [];
-        $vars = []; //'$bh = $this'];
         $allMatchers = $this->_matchers;
         $declarations = [];
         // Matchers->iterate
         for ($i = sizeof($allMatchers) - 1; $i >= 0; $i--) {
             $matcherInfo = $allMatchers[$i];
-            $expr = $matcherInfo['expr'];
             $decl = ['fn' => $matcherInfo['fn'], '__id' => $matcherInfo['__id'], 'index' => $i]
                 + static::parseBemCssClasses($matcherInfo['expr']);
             $declarations[] = $decl;
@@ -370,7 +366,10 @@ class BH
         return "return function (\$ms) {\n" . join("\n", $res) . "\n};";
     }
 
+    /** @var integer */
     protected $_matcherCalls = 0;
+
+    /** @var \Closure - Compiled matcher*/
     protected $_matcher = null;
 
     public function getMatcher()
@@ -387,6 +386,7 @@ class BH
             $code = $this->buildMatcher();
         //     file_put_contents($file, "<?php\n" . $code);
         //     $constructor = include $file;
+            /** @var \Closure $constructor */
             $constructor = eval($code);
         // }
 
@@ -398,50 +398,51 @@ class BH
 
     /**
      * Раскрывает BEMJSON, превращая его из краткого в полный.
-     * @param Json|array $bemJson
+     * @param Json|array|string $bemjson
      * @param string [$blockName]
      * @param boolean [$ignoreContent]
-     * @return Json
+     * @throws \Exception
+     * @return Json|string
      */
-    public function processBemJson($bemJson, $blockName = null, $ignoreContent = null)
+    public function processBemjson($bemjson, $blockName = null, $ignoreContent = null)
     {
-        if (empty($bemJson)) {
-            return is_array($bemJson)
+        if (empty($bemjson)) {
+            return is_array($bemjson)
                 ? '<div></div>'
                 : '';
         }
 
         // trying to parse
-        if (is_scalar($bemJson)) {
+        if (is_scalar($bemjson)) {
             // string? like '{...}' || '[{...}]' || '([...])'
-            if (!is_string($bemJson)) {
+            if (!is_string($bemjson)) {
                 // return as is
-                return (string)$bemJson;
+                return (string)$bemjson;
             }
 
             // deprecated feature:
-            $bemJson = trim($bemJson, "\n\t\r ()\x0B\0");
-            $c = $bemJson[0];
-            $l = $bemJson[strlen($bemJson) - 1];
+            $bemjson = trim($bemjson, "\n\t\r ()\x0B\0");
+            $c = $bemjson[0];
+            $l = $bemjson[strlen($bemjson) - 1];
             if ($c === '{' && $l === '}' || $c === '[' && $l === ']') {
                 // if it looks like json object - parse and process
-                return $this->processBemJson(weakjson_decode($bemJson));
+                return $this->processBemjson(weakjson_decode($bemjson));
             } else {
                 // return as is
-                return $bemJson;
+                return $bemjson;
             }
         }
 
-        $resultArr = JsonCollection::normalize($bemJson);
+        $resultArr = JsonCollection::normalize($bemjson);
         if (sizeof($resultArr) > 1) {
             $resultArr = new \ArrayObject([$resultArr]);
         }
 
-        $bemJson = $resultArr[0];
+        $bemjson = $resultArr[0];
 
         $steps = [];
         $steps[] = new Step(
-            $bemJson,
+            $bemjson,
             $resultArr,
             0,
             $blockName,
@@ -511,16 +512,27 @@ class BH
                     $json->_matcherCalls++;
                     $this->_matcherCalls++;
                     if ($json->_matcherCalls > 100) {
-                        throw new \Exception('Infinite json loop detected at "' . $json->block . ($json->elem ? '__' . $json->elem : '') . '".');
+                        throw new \Exception(
+                            'Infinite json loop detected at "' .
+                            $json->block .
+                            ($json->elem ? '__' . $json->elem : '') .
+                            '".'
+                        );
                     }
                     if ($this->_matcherCalls > 1000) {
-                        throw new \Exception('Infinite matcher loop detected at "' . $json->block . ($json->elem ? '__' . $json->elem : '') . '".');
+                        throw new \Exception(
+                            'Infinite matcher loop detected at "' .
+                            $json->block .
+                            ($json->elem ? '__' . $json->elem : '') .
+                            '".'
+                        );
                     }
                 }
 
                 if (!$json->_stop) {
                     $ctx->node = $step;
                     $ctx->ctx = $json;
+                    /** @var \Closure $compiledMatcher */
                     $subRes = $compiledMatcher($ctx, $json);
                     if ($subRes !== null) {
                         $json = JsonCollection::normalize($subRes);
@@ -567,7 +579,7 @@ class BH
 
     /**
      * Превращает раскрытый BEMJSON в HTML.
-     * @param BemJson $json
+     * @param Json|array|string $json
      * @return string
      */
     public function toHtml($json)
@@ -638,7 +650,7 @@ class BH
                 $cls = static::toBemCssClasses($json, $base, null, $this->_optNobaseMods);
                 if ($json->js !== null && $json->js !== false) {
                     $jsParams = [];
-                    $jsParams[$base] = $json->js === true ? [] : $this->_filterNulls($json->js);
+                    $jsParams[$base] = $json->js === true ? [] : static::filterNulls($json->js);
                 }
             }
 
@@ -663,7 +675,7 @@ class BH
                     $cls .= static::toBemCssClasses($mix, $mixBase, $base, $this->_optNobaseMods);
                     if ($mix->js !== null && $mix->js !== false) {
                         $jsParams = $jsParams ?: [];
-                        $jsParams[$mixBase] = $mix->js === true ? [] : $this->_filterNulls($mix->js);
+                        $jsParams[$mixBase] = $mix->js === true ? [] : static::filterNulls($mix->js);
                         $hasMixJsParams = true;
                         if (!$addJSInitClass) {
                             $addJSInitClass = $mixBlock && ($this->_optJsCls && ($this->_optJsElem || !$mixElem));
@@ -678,8 +690,13 @@ class BH
                 }
                 $jsData = !$hasMixJsParams && $json->js === true ?
                     '{&quot;' . $base . '&quot;:{}}' :
-                    self::attrEscape(str_replace('[]', '{}',
-                        json_encode($jsParams, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)));
+                    self::attrEscape(
+                        str_replace(
+                            '[]',
+                            '{}',
+                            json_encode($jsParams, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)
+                        )
+                    );
                 $attrs .= ' ' . ($json->jsAttr ?: $this->_optJsAttrName) . '="' .
                     ($this->_optJsAttrIsJs ? 'return ' . $jsData : $jsData) . '"';
             }
@@ -735,9 +752,10 @@ class BH
         // if (mods = json.elem && json.elemMods || json.mods)
         $mods = $json->elem && isset($json->elemMods) ? $json->elemMods : $json->mods;
         foreach ($mods as $k => $mod) {
-            if ($mod || $mod === 0) {
-                $res .= ' ' . ($nobase ? '' : $base) . '_' . $k . ($mod === true ? '' : '_' . $mod);
+            if (!$mod && $mod !== 0) {
+                continue;
             }
+            $res .= ' ' . ($nobase ? '' : $base) . '_' . $k . ($mod === true ? '' : '_' . $mod);
         }
 
         return $res;
@@ -763,8 +781,8 @@ class BH
 
     /**
      * Group up selectors by some key
-     * @param array data
-     * @param string key
+     * @param array $data
+     * @param string $key
      * @return array
      */
     public static function groupBy($data, $key)
@@ -781,7 +799,7 @@ class BH
         return $res;
     }
 
-    protected static function _filterNulls($arr)
+    protected static function filterNulls($arr)
     {
         return array_filter($arr, function ($e) {
             return $e !== null;
