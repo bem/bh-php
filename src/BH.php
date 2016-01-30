@@ -773,12 +773,15 @@ class BH
 
         // if (mods = json.elem && json.elemMods || json.mods)
         $mods = $json->elem && isset($json->elemMods) ? $json->elemMods : $json->mods;
+        $isList = isList($mods);
         foreach ($mods as $k => $mod) {
             if (!$mod && $mod !== 0) {
                 continue;
             }
             $res .= ' ' . ($nobase ? '' : $base) . $naming['mod'];
-            $res .= $k . ($mod === true ? '' : $naming['val'] . $mod);
+            $res .= $isList
+                ? $mod
+                : $k . ($mod === true ? '' : $naming['val'] . $mod);
         }
 
         return $res;
